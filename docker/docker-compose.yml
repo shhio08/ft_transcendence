@@ -23,4 +23,20 @@ services:
       - ../pong:/app/code
     environment:
       - DEBUG=1
+    depends_on:
+      - db
     restart: always
+
+  db:
+    container_name: db
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: pong_db
+      POSTGRES_USER: pong_user
+      POSTGRES_PASSWORD: pong_user_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: always
+
+volumes:
+  postgres_data:

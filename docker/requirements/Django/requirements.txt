@@ -1,2 +1,6 @@
 Django>=3.2,<4.0
 gunicorn>=20.0.4
+djangorestframework>=3.12.0
+djangorestframework-simplejwt>=4.8.0
+django_otp>=1.0.0
+psycopg2-binary>=2.9.0

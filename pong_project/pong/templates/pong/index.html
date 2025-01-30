@@ -1,0 +1,15 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pong Game</title>
+    <link rel="stylesheet" href="{% static 'pong/style/styles.css' %}">
+    <!-- 必要なCSSやJSのリンクをここに追加 -->
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="{% static 'pong/main.js' %}"></script>
+  </body>
+</html>

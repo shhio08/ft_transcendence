@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 # 必要なパッケージをインストール
 RUN apt-get update && apt-get install -y \
+    curl \
     libpq-dev \
     gcc \
     python3-dev \

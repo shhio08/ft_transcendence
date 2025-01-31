@@ -1,6 +1,7 @@
 import { Top } from "./components/top.js";
 import { Login } from "./components/login.js";
 import { Home } from "./components/home.js";
+import { Game } from "./components/game.js";
 import { Router } from "./core/router.js";
 
 let router = new Router(
@@ -19,6 +20,11 @@ let router = new Router(
         {
             path: "/home",
             component: Home,
+            state: {},
+        },
+        {
+            path: "/game",
+            component: Game,
             state: {},
         },
     ]

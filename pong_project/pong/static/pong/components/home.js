@@ -7,6 +7,9 @@ export class Home extends Component {
         this.findElement("logout-button").onclick = () => {
             this.handleLogout();
         };
+        this.findElement("start-game-button").onclick = () => {
+            this.goNextPage('/game');
+        };
     }
 
     handleLogout() {
@@ -35,6 +38,7 @@ export class Home extends Component {
             <h1>Home</h1>
             <p>Welcome to your home page!</p>
             <button id="logout-button">Logout</button>
+            <button id="start-game-button">Start Game</button>
         `;
     }
 }

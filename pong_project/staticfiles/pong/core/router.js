@@ -9,11 +9,20 @@ export class Router {
     }
 
     goNextPage(path) {
+        if (path === '/home' && !this.isLoggedIn()) {
+            console.error('User not logged in');
+            this.goNextPage('/login');
+            return;
+        }
         const route = this.routes.find(r => r.path === path);
         if (route) {
-            const component = new route.component(this, {}, route.state);
+            if (this.currentComponent && typeof this.currentComponent.destroy === 'function') {
+                this.currentComponent.destroy(); // 現在のコンポーネントを破棄
+            }
             this.rootElement.innerHTML = ''; // 既存のコンテンツをクリア
+            const component = new route.component(this, {}, route.state);
             this.rootElement.appendChild(component.element); // 新しいコンポーネントを追加
+            this.currentComponent = component; // 現在のコンポーネントを更新
             history.pushState({}, '', path); // パスを変更
         } else {
             console.error('Route not found');
@@ -31,5 +40,10 @@ export class Router {
         } else {
             console.error('Route not found');
         }
+    }
+
+    isLoggedIn() {
+        // クッキーが正しく設定されているか確認
+        return document.cookie.includes('loggedIn=true');
     }
 }

@@ -8,21 +8,6 @@ export class Login extends Component {
             event.preventDefault();
             this.handleLogin();
         };
-        this.loadUserCount();  // ユーザー数をロード
-    }
-
-    loadUserCount() {
-        fetch('/pong/api/user-count/', {
-            method: 'GET',  // 明示的にGETメソッドを指定
-        })
-        .then(response => response.json())
-        .then(data => {
-            const userCountElement = this.findElement("user-count");
-            userCountElement.textContent = `User Count: ${data.user_count}`;
-        })
-        .catch(error => {
-            console.log('Error loading user count:', error);
-        });
     }
 
 	handleLogin() {
@@ -38,11 +23,10 @@ export class Login extends Component {
 		.then(response => response.json())
 		.then(data => {
 			if (data.status === 'success') {
-				// console.log(data.message);
-				console.log(data.status);
+				console.log(data.message);
+				this.goNextPage('/home');
 			} else {
-				// console.log(data.message);
-				console.log(data.status);
+				console.log(data.message);
 			}
 		})
 		.catch(error => {
@@ -62,7 +46,6 @@ export class Login extends Component {
                 <br>
                 <button type="submit">Login</button>
             </form>
-            <h2 id="user-count">User Count: Loading...</h2>  <!-- ユーザー数を表示 -->
         `;
     }
 }

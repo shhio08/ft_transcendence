@@ -10,8 +10,9 @@ export class Component {
   createElementFromHTML(htmlString, containerTag = 'div') {
     const container = document.createElement(containerTag);
     container.innerHTML = htmlString.trim();
-    return container.firstChild;
+    return container;
   }
+
 
   findElement(selector) {
     return this.element.querySelector(`#${selector}`);

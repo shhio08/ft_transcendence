@@ -3,6 +3,7 @@ import { Component } from "../core/component.js";
 export class Game extends Component {
     constructor(router, params, state) {
         super(router, params, state);
+        this.isGameRunning = true;
         this.initGame();
     }
 
@@ -32,7 +33,6 @@ export class Game extends Component {
         canvas.height = 400;
         canvasContainer.appendChild(canvas);
 		gameContainer.appendChild(canvasContainer);
-        // this.element.appendChild(canvasContainer);
         this.context = canvas.getContext('2d');
     }
 
@@ -73,6 +73,7 @@ export class Game extends Component {
     startGameLoop() {
         // ゲームループの開始
         const loop = () => {
+            if (!this.isGameRunning) return; // ゲームが終了している場合はループを停止
             this.update();  // ゲームの状態を更新
             this.render();  // ゲームの描画
             requestAnimationFrame(loop);  // 次のフレームを要求
@@ -119,10 +120,15 @@ export class Game extends Component {
     }
 
     checkForWinner() {
-        // どちらかが3点取ったらホーム画面に戻る
         if (this.score.player1 >= 3 || this.score.player2 >= 3) {
-            alert(`Player ${this.score.player1 >= 3 ? '1' : '2'} wins!`);
-            this.router.navigate('/home');
+            const winner = this.score.player1 >= 3 ? '1' : '2';
+            alert(`Player ${winner} wins!`);
+            this.isGameRunning = false; // ゲームを停止
+            this.router.goNextPage('/result', { 
+                winner, 
+                player1Score: this.score.player1, 
+                player2Score: this.score.player2 
+            });
         }
     }
 

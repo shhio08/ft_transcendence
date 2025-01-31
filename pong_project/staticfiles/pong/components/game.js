@@ -37,21 +37,18 @@ export class Game extends Component {
     }
 
     setupScoreDisplay() {
-        // スコアを表示する要素を作成
-        this.scoreElement = document.createElement('div');
-        this.scoreElement.style.position = 'absolute';
-        this.scoreElement.style.top = '10px';
-        this.scoreElement.style.left = '50%';
-        this.scoreElement.style.transform = 'translateX(-50%)';
-        this.scoreElement.style.color = 'black';
-        this.scoreElement.style.fontSize = '24px';
-        this.element.appendChild(this.scoreElement);
+        // スコアを表示する要素を取得
+        this.player1ScoreElement = this.findElement('player1-score');
+        this.player2ScoreElement = this.findElement('player2-score');
         this.updateScoreDisplay();
     }
 
     updateScoreDisplay() {
         // スコアを更新
-        this.scoreElement.innerText = `Player 1: ${this.score.player1} - Player 2: ${this.score.player2}`;
+        if (this.player1ScoreElement && this.player2ScoreElement) {
+            this.player1ScoreElement.innerText = `Player 1: ${this.score.player1}`;
+            this.player2ScoreElement.innerText = `Player 2: ${this.score.player2}`;
+        }
     }
 
     setupControls() {
@@ -122,10 +119,10 @@ export class Game extends Component {
     }
 
     checkForWinner() {
-        // どちらかが3点取ったらホーム画面に戻る
         if (this.score.player1 >= 3 || this.score.player2 >= 3) {
-            alert(`Player ${this.score.player1 >= 3 ? '1' : '2'} wins!`);
-            this.router.navigate('/home');
+            const winner = this.score.player1 >= 3 ? '1' : '2';
+            alert(`Player ${winner} wins!`);
+            this.router.goNextPage('/result', { winner });
         }
     }
 
@@ -156,7 +153,13 @@ export class Game extends Component {
     get html() {
         return `
             <h1 style="text-align: center;">Pong Game</h1>
-            <p style="text-align: center;">Use 'W' and 'S' for Player 1, 'Arrow Up' and 'Arrow Down' for Player 2.</p>
+            <div style="text-align: center;">
+                <span id="player1-score">Player 1: 0</span>
+                <span> | </span>
+                <span id="player2-score">Player 2: 0</span>
+            </div>
+            <p style="text-align: center;">Player 1: W, S</p>
+            <p style="text-align: center;">Player 2: ↑, ↓</p>
             <div id="game-container"></div>
         `;
     }

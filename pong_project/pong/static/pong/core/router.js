@@ -8,7 +8,7 @@ export class Router {
         });
     }
 
-    goNextPage(path) {
+    goNextPage(path, state = {}) {
         if (path === '/home' && !this.isLoggedIn()) {
             console.error('User not logged in');
             this.goNextPage('/login');
@@ -20,7 +20,7 @@ export class Router {
                 this.currentComponent.destroy(); // 現在のコンポーネントを破棄
             }
             this.rootElement.innerHTML = ''; // 既存のコンテンツをクリア
-            const component = new route.component(this, {}, route.state);
+            const component = new route.component(this, {}, { ...route.state, ...state });
             this.rootElement.appendChild(component.element); // 新しいコンポーネントを追加
             this.currentComponent = component; // 現在のコンポーネントを更新
             history.pushState({}, '', path); // パスを変更

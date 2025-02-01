@@ -55,6 +55,9 @@ export class Home extends Component {
         this.findElement("start-game-button").onclick = () => {
             this.goNextPage('/game');
         };
+        this.findElement("edit-profile-button").onclick = () => {
+            this.goNextPage('/edit-profile');
+        };
     }
 
     handleLogout() {
@@ -89,6 +92,7 @@ export class Home extends Component {
             <img src="${this.state.avatar}" alt="Avatar" style="width: 100px; height: 100px;">
             <button id="logout-button">Logout</button>
             <button id="start-game-button">Start Game</button>
+            <button id="edit-profile-button">Edit Profile</button>
         `;
     }
 }

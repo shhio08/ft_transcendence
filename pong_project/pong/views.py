@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.authtoken.models import Token
 import base64
 from django.core.files.base import ContentFile
+from django.views.decorators.http import require_http_methods
+from django.core.exceptions import ObjectDoesNotExist
 
 User = get_user_model()
 
@@ -83,14 +85,6 @@ def signup_api(request):
 			return JsonResponse({'error': str(e)}, status=400)
 	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
-# @login_required
-# def home_view(request):
-# 	user = request.user
-# 	avatar_data = user.avatar
-# 	if avatar_data:
-# 		avatar_data = f"data:image/png;base64,{avatar_data}"  # Base64データをimgタグ用に整形
-# 	return render(request, 'pong/home.html', {'username': user.username, 'avatar': avatar_data})
-
 @login_required
 def user_info_api(request):
 	user = request.user
@@ -108,3 +102,27 @@ def user_info_api(request):
 			'avatar': avatar_url
 		}
 	})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def update_user_info_api(request):
+	try:
+		username = request.POST.get('username')
+		avatar = request.FILES.get('avatar')
+
+		user = request.user
+
+		if username:
+			user.username = username
+
+		if avatar:
+			user.avatar.save(f'{user.id}_avatar.png', avatar, save=True)
+
+		user.save()
+
+		return JsonResponse({'status': 'success', 'message': 'User info updated successfully'})
+	except ObjectDoesNotExist:
+		return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+	except Exception as e:
+		return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

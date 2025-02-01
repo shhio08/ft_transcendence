@@ -24,6 +24,7 @@ export class Login extends Component {
 		.then(data => {
 			if (data.status === 'success') {
 				console.log(data.message);
+				localStorage.setItem('authToken', data.token);
 				this.goNextPage('/home');
 			} else {
 				console.log(data.message);

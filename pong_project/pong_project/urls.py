@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path, include
-from pong.views import index, health_check  # indexビューをインポート
+from pong.views import index, health_check, signup_api  # indexビューとsignup_apiをインポート
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -1,11 +1,15 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 import json
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from rest_framework.authtoken.models import Token
+import base64
+from django.core.files.base import ContentFile
 
+User = get_user_model()
 
 # Create your views here.
 def index(request):
@@ -24,12 +28,11 @@ def login_api(request):
 		except json.JSONDecodeError:
 			return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-		user = authenticate(request, username=username, password=password)
+		user = authenticate(username=username, password=password)
 		if user is not None:
 			login(request, user)
-			response = JsonResponse({'status': 'success', 'message': 'Logged in successfully'})
-			response.set_cookie('loggedIn', 'true')
-			return response
+			token, created = Token.objects.get_or_create(user=user)
+			return JsonResponse({'status': 'success', 'message': 'Logged in successfully', 'token': token.key})
 		else:
 			return JsonResponse({'status': 'error', 'message': 'Invalid credentials'}, status=401)
 	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
@@ -43,12 +46,65 @@ def user_count(request):
 @csrf_exempt
 def logout_api(request):
 	if request.method == 'POST':
+		token_key = request.headers.get('Authorization').split(' ')[1]
+		Token.objects.filter(key=token_key).delete()
 		logout(request)
-		response = JsonResponse({'status': 'success', 'message': 'Logged out successfully'})
-		response.delete_cookie('loggedIn')
-		return response
+		return JsonResponse({'status': 'success', 'message': 'Logged out successfully'})
 	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
+@csrf_exempt
+def signup_api(request):
+	print("signup_api")
+	if request.method == 'POST':
+		username = request.POST.get('username')
+		email = request.POST.get('email')
+		password = request.POST.get('password')
+		avatar = request.FILES.get('avatar')
+
+		if not username or not email or not password:
+			return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
+		
+		try:
+			user = User.objects.create_user(username=username, email=email, password=password)
+			if avatar:
+				user.avatar.save(f'{username}_avatar.png', avatar, save=True)
+			user.save()
+			
+			login(request, user)
+			# トークンを生成
+			token, created = Token.objects.get_or_create(user=user)
+			
+			return JsonResponse({
+				'status': 'success',
+				'message': 'User created successfully',
+				'token': token.key  # トークンをレスポンスに追加
+			})
+		except Exception as e:
+			return JsonResponse({'error': str(e)}, status=400)
+	return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+# @login_required
+# def home_view(request):
+# 	user = request.user
+# 	avatar_data = user.avatar
+# 	if avatar_data:
+# 		avatar_data = f"data:image/png;base64,{avatar_data}"  # Base64データをimgタグ用に整形
+# 	return render(request, 'pong/home.html', {'username': user.username, 'avatar': avatar_data})
+
 @login_required
-def home_view(request):
-	return render(request, 'pong/home.html')
+def user_info_api(request):
+	user = request.user
+	avatar_url = None
+	if user.avatar:
+		host = request.get_host()
+		# 手動でポート番号を追加
+		if ':' not in host:
+			host += ':8080'  # 必要なポート番号を指定
+		avatar_url = f"http://{host}{user.avatar.url}"
+	return JsonResponse({
+		'status': 'success',
+		'user': {
+			'username': user.username,
+			'avatar': avatar_url
+		}
+	})

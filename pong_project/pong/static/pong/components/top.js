@@ -7,10 +7,17 @@ export class Top extends Component {
         this.findElement("go-login").onclick = () => {
             this.goLogin();
         };
+        this.findElement("go-signup").onclick = () => {
+            this.goSignup();
+        };
     }
 
     goLogin() {
         this.goNextPage("/login");
+    }
+
+    goSignup() {
+        this.goNextPage("/signup");
     }
 
     get html() {
@@ -18,6 +25,7 @@ export class Top extends Component {
             <h1>Welcome to the Pong Game!</h1>
             <p>This is the top page.</p>
             <button id="go-login">Go to Login</button>
+            <button id="go-signup">Sign Up</button>
         `;
     }
 }

@@ -43,7 +43,7 @@ export class Router {
     }
 
     isLoggedIn() {
-        // クッキーが正しく設定されているか確認
-        return document.cookie.includes('loggedIn=true');
+        // トークンが存在するか確認
+        return !!localStorage.getItem('authToken');
     }
 }

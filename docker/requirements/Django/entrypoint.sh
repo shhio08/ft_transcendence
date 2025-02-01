@@ -11,11 +11,11 @@ User = get_user_model()
 
 # スーパーユーザーの作成
 if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin_password')
+    User.objects.create_superuser(username='admin', email='admin@example.com', password='admin_password')
 
 # 通常ユーザーの作成
 if not User.objects.filter(username='user').exists():
-    User.objects.create_user('user', 'user@example.com', 'user_password')
+    User.objects.create_user(username='user', email='user@example.com', password='user_password')
 EOF
 
 python manage.py collectstatic --no-input --clear

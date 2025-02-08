@@ -126,7 +126,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 静的ファイルを収集するディレクトリ
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "pong/static",
     # 他の静的ファイルディレクトリ
 ]
 

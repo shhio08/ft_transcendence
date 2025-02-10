@@ -104,6 +104,30 @@ def user_info_api(request):
 	})
 
 @csrf_exempt
+@login_required
+def friend_list_api(request):
+    if request.method != 'GET':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+    try:
+        users = User.objects.all()
+        if not users.exists():  # ユーザが空の時
+            User.objects.create_user(username='default_user', email='default@example.com', password='defaultpassword')
+            users = User.objects.all()  # ユーザを再取得
+
+        return JsonResponse({
+            'status': 'success',
+            'users': {
+                user.id: {
+                    'username': user.username,
+                    'email': user.email,
+                } for user in users
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def update_user_info_api(request):

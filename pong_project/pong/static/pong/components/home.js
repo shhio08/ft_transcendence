@@ -58,6 +58,9 @@ export class Home extends Component {
         this.findElement("edit-profile-button").onclick = () => {
             this.goNextPage('/edit-profile');
         };
+        this.findElement("friend-list-button").onclick = () => {
+            this.goNextPage('/friend-list');
+        };
     }
 
     handleLogout() {
@@ -93,6 +96,7 @@ export class Home extends Component {
             <button id="logout-button">Logout</button>
             <button id="start-game-button">Start Game</button>
             <button id="edit-profile-button">Edit Profile</button>
+            <button id="friend-list-button">Friend List</button>
         `;
     }
 }

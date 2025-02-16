@@ -10,6 +10,7 @@ import base64
 from django.core.files.base import ContentFile
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from .models import User, Friend
 
 # User = get_user_model()
@@ -137,11 +138,12 @@ def friend_list_api(request):
 
     try:
         user_list = User.objects.all()
-        friend_db = Friend.objects.filter(user_id=request.user.id)
+        friend_db = Friend.objects.filter(Q(user_id=request.user.id) | Q(friend_id=request.user.id))
         print(str(friend_db))
         friend_list = {}
         for friend in friend_db:
             user = user_list.get(id=friend.friend_id)
+            print(user.id, user.username, friend.status)
 			# TODO error handling
             friend_list[str(user.id)] = {
                 'username': user.username,

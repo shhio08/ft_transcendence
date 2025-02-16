@@ -34,11 +34,8 @@ class Friend(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
-
     groups = models.ManyToManyField('auth.Group', related_name='friend_groups')  # 変更
     user_permissions = models.ManyToManyField('auth.Permission', related_name='friend_user_permissions')  # 変更
 
     def __str__(self):
-        return self.username
+        return str(self.user_id)

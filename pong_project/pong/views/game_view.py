@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from pong.models import Game
+from pong.models import Game, GamePlayers
 import json
+from django.contrib.auth.decorators import login_required
 
 @csrf_exempt
 def create_game(request):
@@ -47,3 +48,24 @@ def update_game_winner(request):
             return JsonResponse({'error': 'Game not found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@login_required
+def get_user_game_history(request):
+    user_id = request.user.id
+    try:
+        game_players = GamePlayers.objects.filter(user_id=user_id)
+        game_history = []
+        for game_player in game_players:
+            game = game_player.game
+            opponent = GamePlayers.objects.filter(game=game).exclude(user_id=user_id).first()
+            game_history.append({
+                'game_id': str(game.id),
+                'mode': game.mode,
+                'opponent': opponent.nickname if opponent else "N/A",
+                'user_score': game_player.score,
+                'opponent_score': opponent.score if opponent else 0
+            })
+        return JsonResponse({'game_history': game_history}, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

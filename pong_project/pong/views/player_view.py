@@ -64,15 +64,15 @@ def update_player_score(request):
             score = request.GET.get('score')
             if not player_id or score is None:
                 return JsonResponse({'error': 'Player ID and Score are required'}, status=400)
-            
+
             player = GamePlayers.objects.get(id=player_id)
             player.score = score  # スコアを更新
             player.save()
-            return JsonResponse({'message': 'Player score updated successfully'}, status=200)
+            return JsonResponse({'message': 'Player score updated successfully', 'success': True}, status=200)
         except GamePlayers.DoesNotExist:
-            return JsonResponse({'error': 'Player not found'}, status=404)
+            return JsonResponse({'error': 'Player not found', 'success': False}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            return JsonResponse({'error': str(e), 'success': False}, status=400)
 
 def get_result(request):
     game_id = request.GET.get('game_id')
@@ -95,13 +95,14 @@ def get_result(request):
             for player in players
         ]
 
+        # player_dataをplayer_numberでソート
+        player_data.sort(key=lambda x: x['player_number'])
+
         winner = max(players, key=lambda p: p.score)  # スコアが最も高いプレイヤーを勝者とする
 
         return JsonResponse({
             'game_id': game_id,
             'winner': winner.nickname,
-            'player1Score': player_data[0]['score'] if len(player_data) > 0 else 0,
-            'player2Score': player_data[1]['score'] if len(player_data) > 1 else 0,
             'players': player_data
         }, status=200)
     except Game.DoesNotExist:

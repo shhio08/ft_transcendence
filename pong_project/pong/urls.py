@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import login_api, logout_api, signup_api, user_info_api, update_user_info_api, user_count
-from .views import create_game, get_game, create_player, get_players
+from .views import create_game, get_game, create_player, get_players, update_player_score, update_game_winner, get_result, get_user_game_history
 from .views import update_player_score, update_game_winner, get_result
 
 urlpatterns = [
@@ -18,4 +18,5 @@ urlpatterns = [
     path('api/update-player-score/', update_player_score, name='update_player_score'),
     path('api/update-game-winner/', update_game_winner, name='update_game_winner'),
     path('api/get-result/', get_result, name='get_result'),
+    path('api/user-game-history/', get_user_game_history, name='get_user_game_history'),
 ]

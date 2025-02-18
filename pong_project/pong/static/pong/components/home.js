@@ -38,6 +38,7 @@ export class Home extends Component {
           console.log("success avatar: " + this.state.avatar);
           this.render();
           this.attachEventListeners();
+          this.loadGameHistory();
         } else {
           console.log(data.message);
           this.goNextPage("/login");
@@ -47,6 +48,45 @@ export class Home extends Component {
         console.error("Error fetching user data:", error);
         this.goNextPage("/login");
       });
+  }
+
+  loadGameHistory() {
+    const token = localStorage.getItem("authToken");
+    fetch("/pong/api/user-game-history/", {
+      method: "GET",
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch game history");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        this.state.gameHistory = data.game_history || [];
+        this.renderGameHistory();
+      })
+      .catch((error) => {
+        console.error("Error fetching game history:", error);
+      });
+  }
+
+  renderGameHistory() {
+    const historyContainer = this.findElement("game-history");
+    historyContainer.innerHTML = this.state.gameHistory
+      .map(
+        (game) => `
+          <div>
+            <p>Mode: ${game.mode}</p>
+            <p>Opponent: ${game.opponent}</p>
+            <p>Your Score: ${game.user_score} - Opponent Score: ${game.opponent_score}</p>
+          </div>
+        `
+      )
+      .join("");
   }
 
   attachEventListeners() {
@@ -101,6 +141,7 @@ export class Home extends Component {
             <button id="local-game-button">Local Game</button>
             <button id="online-game-button">Online Game</button>
             <button id="edit-profile-button">Edit Profile</button>
+            <div id="game-history"></div>
         `;
   }
 }

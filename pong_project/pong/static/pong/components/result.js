@@ -9,6 +9,13 @@ export class Result extends Component {
       return;
     }
     this.loadResultData();
+
+    // カスタムイベントをリッスン
+    window.addEventListener("scoreUpdated", (event) => {
+      if (event.detail.gameId === this.gameId) {
+        this.loadResultData(); // スコアが更新されたら結果を再取得
+      }
+    });
   }
 
   loadResultData() {
@@ -24,8 +31,8 @@ export class Result extends Component {
           console.error(data.error);
         } else {
           this.winner = data.winner;
-          this.player1Score = data.player1Score;
-          this.player2Score = data.player2Score;
+          this.player1Score = data.players[0].score;
+          this.player2Score = data.players[1].score;
           this.player1Nickname = data.players[0].nickname;
           this.player2Nickname = data.players[1].nickname;
           this.render();

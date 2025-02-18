@@ -278,32 +278,7 @@ export class Game extends Component {
       // APIを呼び出してプレイヤーのスコアを更新
       this.state.players.forEach((player, index) => {
         const score = index === 0 ? this.score.player1 : this.score.player2;
-        fetch(
-          `/pong/api/update-player-score/?player_id=${player.id}&score=${score}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.error) {
-              console.error(
-                `Error updating score for player ${player.id}:`,
-                data.error
-              );
-            } else {
-              console.log(`Score for player ${player.id} updated successfully`);
-            }
-          })
-          .catch((error) => {
-            console.error(
-              `Error updating score for player ${player.id}:`,
-              error
-            );
-          });
+        this.updatePlayerScore(player.id, score);
       });
 
       // ルートを変更する前にゲームを停止
@@ -364,5 +339,29 @@ export class Game extends Component {
         <p style="text-align: center;">Player 2: ↑, ↓</p>
         <div id="game-container"></div>
     `;
+  }
+
+  updatePlayerScore(playerId, score) {
+    fetch(
+      `/pong/api/update-player-score/?player_id=${playerId}&score=${score}`,
+      {
+        method: "POST",
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          // スコア更新が成功したらカスタムイベントを発行
+          const scoreUpdatedEvent = new CustomEvent("scoreUpdated", {
+            detail: { gameId: this.gameId }, // thisを使ってgameIdを参照
+          });
+          window.dispatchEvent(scoreUpdatedEvent);
+        } else {
+          console.error("Score update failed:", data.error);
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating score:", error);
+      });
   }
 }

@@ -9,6 +9,8 @@ export class Router {
   }
 
   goNextPage(path, state = {}) {
+    console.log("Navigating to:", path);
+    console.log("State:", state); // stateの内容を確認
     if (path === "/home" && !this.isLoggedIn()) {
       console.error("User not logged in");
       this.goNextPage("/login");
@@ -24,7 +26,7 @@ export class Router {
       }
       this.rootElement.innerHTML = ""; // 既存のコンテンツをクリア
       const component = new route.component(this, route.params, {
-        ...route.state,
+        ...(route.state || {}), // route.stateがundefinedの場合に備える
         ...state,
       });
       this.rootElement.appendChild(component.element); // 新しいコンポーネントを追加

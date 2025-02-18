@@ -13,19 +13,41 @@ export class LocalGameOptions extends Component {
         "Player 4",
       ],
     };
+    console.log("state.username: " + this.state.username);
     this.render();
     this.attachEventListeners();
+    this.renderNicknames();
   }
 
   attachEventListeners() {
-    this.findElement("players-select").onchange = (event) => {
-      this.state.players = parseInt(event.target.value, 10);
+    this.findElement("players-2-button").onclick = () => {
+      this.state.players = 2;
+      this.updatePlayerButtons();
+      this.renderNicknames();
+    };
+
+    this.findElement("players-4-button").onclick = () => {
+      this.state.players = 4;
+      this.updatePlayerButtons();
       this.renderNicknames();
     };
 
     this.findElement("start-game-button").onclick = () => {
       this.createGame();
     };
+  }
+
+  updatePlayerButtons() {
+    const players2Button = this.findElement("players-2-button");
+    const players4Button = this.findElement("players-4-button");
+
+    if (this.state.players === 2) {
+      players2Button.style.opacity = "1.0";
+      players4Button.style.opacity = "0.5";
+    } else {
+      players2Button.style.opacity = "0.5";
+      players4Button.style.opacity = "1.0";
+    }
   }
 
   renderNicknames() {
@@ -61,14 +83,44 @@ export class LocalGameOptions extends Component {
       .then((response) => response.json())
       .then((data) => {
         if (data.message === "Game created successfully") {
-          this.goNextPage(`/game/${data.id}`);
+          this.createPlayers(data.id, nicknames);
         } else {
-          console.error(data.error);
+          console.error("Error creating game:", data.error);
         }
       })
       .catch((error) => {
         console.error("Error creating game:", error);
       });
+  }
+
+  createPlayers(gameId, nicknames) {
+    const playerCreationPromises = nicknames.map((nickname, index) => {
+      return fetch("/pong/api/create-player/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_id: gameId,
+          player_number: index + 1,
+          nickname: nickname,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Player creation response:", data);
+          if (data.message !== "Player created successfully") {
+            console.error(data.error);
+          }
+        })
+        .catch((error) => {
+          console.error("Error creating player:", error);
+        });
+    });
+
+    Promise.all(playerCreationPromises).then(() => {
+      this.goNextPage(`/game/${gameId}`);
+    });
   }
 
   get html() {
@@ -83,10 +135,8 @@ export class LocalGameOptions extends Component {
       </div>
       <div>
         <label>Number of Players:</label>
-        <select id="players-select">
-          <option value="2">2</option>
-          <option value="4">4</option>
-        </select>
+        <button id="players-2-button" style="opacity: 1.0;">2 Players</button>
+        <button id="players-4-button" style="opacity: 0.5;">4 Players</button>
       </div>
       <div id="nicknames-container"></div>
       <button id="start-game-button">Start Game</button>

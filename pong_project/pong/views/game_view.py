@@ -31,15 +31,18 @@ def get_game(request):
         return JsonResponse({'error': 'Game not found'}, status=404)
 
 @csrf_exempt
-def update_winner(request, game_id):
+def update_game_winner(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            winner_id = data.get('winner_id')
+            game_id = request.GET.get('game_id')
+            winner_id = request.GET.get('winner_id')
+            if not game_id or not winner_id:
+                return JsonResponse({'error': 'Game ID and Winner ID are required'}, status=400)
+            
             game = Game.objects.get(id=game_id)
             game.winner_id = winner_id
             game.save()
-            return JsonResponse({'message': 'Winner updated successfully'}, status=200)
+            return JsonResponse({'message': 'Game winner updated successfully'}, status=200)
         except Game.DoesNotExist:
             return JsonResponse({'error': 'Game not found'}, status=404)
         except Exception as e:

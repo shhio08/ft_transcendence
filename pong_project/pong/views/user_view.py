@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.views.decorators.csrf import csrf_exempt
 User = get_user_model()
 
 @login_required
@@ -22,6 +22,7 @@ def user_info_api(request):
         }
     })
 
+@csrf_exempt
 @login_required
 def update_user_info_api(request):
     try:

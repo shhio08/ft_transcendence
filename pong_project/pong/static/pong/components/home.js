@@ -54,7 +54,9 @@ export class Home extends Component {
       this.handleLogout();
     };
     this.findElement("local-game-button").onclick = () => {
-      this.goNextPage("/local-game-options");
+      const stateToPass = { username: this.state.username };
+      console.log("stateToPass:", stateToPass);
+      this.goNextPage("/local-game-options", stateToPass);
     };
     this.findElement("online-game-button").onclick = () => {
       // TODO: オンラインゲームのボタンを実装

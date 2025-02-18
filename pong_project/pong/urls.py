@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import login_api, logout_api, signup_api, user_info_api, update_user_info_api, user_count
-from .views import create_game, get_game
+from .views import create_game, get_game, create_player, get_players
+from .views import update_player_score, update_game_winner, get_result
 
 urlpatterns = [
     path('api/login/', login_api, name='login_api'),  # ログインAPIのパスを追加
@@ -12,4 +13,9 @@ urlpatterns = [
 
     path('api/create-game/', create_game, name='create_game'),  # ゲーム作成APIのパスを追加
     path('api/get-game/', get_game, name='get_game'),  # ゲーム取得APIのパスを追加
-  ]
+    path('api/create-player/', create_player, name='create_player'),
+    path('api/get-players/', get_players, name='get_players'),
+    path('api/update-player-score/', update_player_score, name='update_player_score'),
+    path('api/update-game-winner/', update_game_winner, name='update_game_winner'),
+    path('api/get-result/', get_result, name='get_result'),
+]

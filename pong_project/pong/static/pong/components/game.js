@@ -6,6 +6,33 @@ export class Game extends Component {
     this.gameId = params.gameId; // ルートパラメータからゲームIDを取得
     this.isGameRunning = true;
     this.loadGameData();
+
+    // beforeunload イベントでゲームループを停止
+    window.addEventListener("beforeunload", this.stopGameLoop.bind(this));
+
+    // visibilitychange イベントでタブが非アクティブになったときにゲームループを一時停止
+    document.addEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange.bind(this)
+    );
+  }
+
+  stopGameLoop() {
+    this.isGameRunning = false;
+  }
+
+  handleVisibilityChange() {
+    if (document.visibilityState === "hidden") {
+      this.stopGameLoop();
+    } else if (document.visibilityState === "visible") {
+      this.isGameRunning = true;
+      this.startGameLoop();
+    }
+  }
+
+  destroy() {
+    this.stopGameLoop();
+    // 必要に応じて他のクリーンアップ処理を追加
   }
 
   loadGameData() {
@@ -17,13 +44,14 @@ export class Game extends Component {
         return response.json();
       })
       .then((data) => {
-        console.log("Game data:", data); // 取得したデータをコンソールに出力
+        console.log("Game data:", data);
         if (data.error) {
           console.error(data.error);
           this.router.goNextPage("/home");
         } else {
           this.state = { ...this.state, ...data };
           this.initGame();
+          this.loadPlayerData();
         }
       })
       .catch((error) => {
@@ -32,13 +60,50 @@ export class Game extends Component {
       });
   }
 
+  loadPlayerData() {
+    fetch(`/pong/api/get-players/?game_id=${this.gameId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Player data:", data); // デバッグログ
+        if (data.error) {
+          console.error(data.error);
+        } else if (data.players && data.players.length > 0) {
+          this.state.players = data.players; // プレイヤーデータをstateに設定
+          console.log("Players set in state:", this.state.players); // デバッグログ
+          this.setupScoreDisplay(); // プレイヤーデータが設定された後に呼び出す
+        } else {
+          console.error("No players found");
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading player data:", error);
+      });
+  }
+
+  displayPlayerNames(players) {
+    if (players.length > 0) {
+      this.player1ScoreElement.innerText = `Player 1: ${
+        players[0].nickname || "Unknown"
+      }`;
+      if (players.length > 1) {
+        this.player2ScoreElement.innerText = `Player 2: ${
+          players[1].nickname || "Unknown"
+        }`;
+      }
+    }
+  }
+
   initGame() {
     this.score = { player1: 0, player2: 0 };
     this.ball = { x: 400, y: 200, radius: 10, speedX: 2, speedY: 2 };
     this.paddle1 = { x: 10, y: 150, width: 10, height: 100, speed: 5 };
     this.paddle2 = { x: 780, y: 150, width: 10, height: 100, speed: 5 };
     this.setupCanvas();
-    this.setupScoreDisplay();
     this.setupControls();
     this.startGameLoop();
   }
@@ -62,17 +127,32 @@ export class Game extends Component {
   }
 
   setupScoreDisplay() {
-    // スコアを表示する要素を取得
+    console.log("setupScoreDisplay called"); // デバッグログ
     this.player1ScoreElement = this.findElement("player1-score");
     this.player2ScoreElement = this.findElement("player2-score");
-    this.updateScoreDisplay();
+
+    if (this.state.players && this.state.players.length > 0) {
+      const player1Name = this.state.players[0]?.nickname || "Player 1";
+      const player2Name = this.state.players[1]?.nickname || "Player 2";
+
+      if (this.player1ScoreElement && this.player2ScoreElement) {
+        this.player1ScoreElement.innerText = `${player1Name}: 0`;
+        this.player2ScoreElement.innerText = `${player2Name}: 0`;
+      }
+    } else {
+      console.error("No players found");
+    }
   }
 
   updateScoreDisplay() {
-    // スコアを更新
+    // スコアの数字だけを更新
     if (this.player1ScoreElement && this.player2ScoreElement) {
-      this.player1ScoreElement.innerText = `Player 1: ${this.score.player1}`;
-      this.player2ScoreElement.innerText = `Player 2: ${this.score.player2}`;
+      this.player1ScoreElement.innerText = `${
+        this.state.players[0]?.nickname || "Player 1"
+      }: ${this.score.player1}`;
+      this.player2ScoreElement.innerText = `${
+        this.state.players[1]?.nickname || "Player 2"
+      }: ${this.score.player2}`;
     }
   }
 
@@ -155,15 +235,80 @@ export class Game extends Component {
   }
 
   checkForWinner() {
-    if (this.score.player1 >= 3 || this.score.player2 >= 3) {
-      const winner = this.score.player1 >= 3 ? "1" : "2";
-      alert(`Player ${winner} wins!`);
+    const winningScore = 3; // 勝利に必要なスコア
+    let winnerIndex = null;
+    let maxScore = 0;
+
+    // スコアを比較して勝者を決定
+    this.state.players.forEach((player, index) => {
+      const playerScore = index === 0 ? this.score.player1 : this.score.player2;
+      if (playerScore >= winningScore && playerScore > maxScore) {
+        maxScore = playerScore;
+        winnerIndex = index;
+      }
+    });
+
+    if (winnerIndex !== null) {
+      const winner = this.state.players[winnerIndex];
+      alert(`Player ${winner.nickname} wins!`);
       this.isGameRunning = false; // ゲームを停止
-      this.router.goNextPage("/result", {
-        winner,
-        player1Score: this.score.player1,
-        player2Score: this.score.player2,
+
+      // APIを呼び出してゲームの勝者を更新
+      fetch(
+        `/pong/api/update-game-winner/?game_id=${this.gameId}&winner_id=${winner.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            console.error("Error updating game winner:", data.error);
+          } else {
+            console.log("Game winner updated successfully");
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating game winner:", error);
+        });
+
+      // APIを呼び出してプレイヤーのスコアを更新
+      this.state.players.forEach((player, index) => {
+        const score = index === 0 ? this.score.player1 : this.score.player2;
+        fetch(
+          `/pong/api/update-player-score/?player_id=${player.id}&score=${score}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.error) {
+              console.error(
+                `Error updating score for player ${player.id}:`,
+                data.error
+              );
+            } else {
+              console.log(`Score for player ${player.id} updated successfully`);
+            }
+          })
+          .catch((error) => {
+            console.error(
+              `Error updating score for player ${player.id}:`,
+              error
+            );
+          });
       });
+
+      // ルートを変更する前にゲームを停止
+      this.isGameRunning = false;
+      this.router.goNextPage(`/result/${this.gameId}`);
     }
   }
 
@@ -209,15 +354,15 @@ export class Game extends Component {
 
   get html() {
     return `
-            <h1 style="text-align: center;">Pong Game</h1>
-            <div style="text-align: center;">
-                <span id="player1-score">Player 1: 0</span>
-                <span> | </span>
-                <span id="player2-score">Player 2: 0</span>
-            </div>
-            <p style="text-align: center;">Player 1: W, S</p>
-            <p style="text-align: center;">Player 2: ↑, ↓</p>
-            <div id="game-container"></div>
-        `;
+        <h1 style="text-align: center;">Pong Game</h1>
+        <div style="text-align: center;">
+            <span id="player1-score">Player 1: 0</span>
+            <span> | </span>
+            <span id="player2-score">Player 2: 0</span>
+        </div>
+        <p style="text-align: center;">Player 1: W, S</p>
+        <p style="text-align: center;">Player 2: ↑, ↓</p>
+        <div id="game-container"></div>
+    `;
   }
 }

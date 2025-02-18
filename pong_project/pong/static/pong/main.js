@@ -29,7 +29,7 @@ let router = new Router(document.getElementById("app"), [
     state: {},
   },
   {
-    path: "/result",
+    path: "/result/:gameId",
     component: Result,
     state: {},
   },

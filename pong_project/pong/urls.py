@@ -12,4 +12,5 @@ urlpatterns = [
     path('api/friend-list/', views.friend_list_api, name='friend_list_api'),  # ユーザー一覧取得APIのパスを追加
     path('api/accept-friend/', views.accept_friend_api, name='friend_request_api'),  # フレンドリクエストAPIのパスを追加
     path('api/add-friend/', views.add_friend_api, name='add_friend_api'),  # フレンド追加APIのパスを追加
+    path('api/reject-friend/', views.reject_friend_api, name='reject_friend_api'),  # フレンドリクエスト拒否APIのパスを追加
 ]

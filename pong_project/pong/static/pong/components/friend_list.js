@@ -101,31 +101,17 @@ export class FriendList extends Component {
         console.log(requests);
         const requestListHtml = Object.keys(requests).map(key => {
             const request = requests[key];
-            return `<li id=${key}><img src=${request.avatar} width="30" height="30" alt=${request.username}/>${request.username}<button id=${key}>Accept</button></li>\n`; // ユーザ名とボタンを表示
+            return `<li id=${key}>
+            <img src=${request.avatar} width="30" height="30" alt=${request.username}/>
+            ${request.username}
+            <button id="accept">Accept</button>
+            <button id="reject">Reject</button>
+            </li>\n`; // ユーザ名とボタンを表示
         }).join('');
         const list = document.getElementById("friend-request");
         list.innerHTML += requestListHtml;
     }
-
-    attachEventListeners() {
-        this.findElement("go-home").onclick = () => {
-            this.goNextPage('/home');
-        };
-        // 友達リクエストのボタンにイベントリスナーを追加
-        const requestButtons = document.querySelectorAll('#friend-request button');
-        requestButtons.forEach(button => {
-            button.onclick = () => {
-                this.handleFriendRequest(button.id);
-            };
-        });
-        const addButtons = document.querySelectorAll('#user-list button');
-        addButtons.forEach(button => {
-            button.onclick = () => {
-                this.handleAddFriend(button.id);
-            };
-        });
-    }
-
+    
     handleAddFriend(friendId) {
         // 友達にリクエストを送信するAPIを呼び出す
         const token = localStorage.getItem('authToken');
@@ -160,11 +146,11 @@ export class FriendList extends Component {
             console.error('Error accepting friend request:', error);
         });
     }
-
-    handleFriendRequest(friendId) {
+    
+    acceptFriendRequest(friendId) {
         // 友達リクエストを承認するAPIを呼び出す
         const token = localStorage.getItem('authToken');
-        console.log("handleFriendRequest: friendId");
+        console.log("acceptFriendRequest: friendId");
         console.log(friendId);
         const formData = new FormData();
         formData.append('friend_id', friendId);
@@ -172,7 +158,6 @@ export class FriendList extends Component {
             method: 'POST',
             headers: {
                 'Authorization': `Token ${token}`,
-                // 'Content-Type': 'application/json',
             },
             body: formData
         })
@@ -195,16 +180,77 @@ export class FriendList extends Component {
             console.error('Error accepting friend request:', error);
         });
     }
+    
+    rejectFriendRequest(friendId) {
+        // 友達リクエストを拒否するAPIを呼び出す
+        const token = localStorage.getItem('authToken');
+        console.log("rejectFriendRequest: friendId");
+        console.log(friendId);
+        const formData = new FormData();
+        formData.append('friend_id', friendId);
+        fetch('/pong/api/reject-friend/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${token}`,
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to reject friend request');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                console.log("handleFriendRequest success");
+                console.log(data.message);
+                this.goNextPage('/friend-list');
+            } else {
+                console.log(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error rejecting friend request:', error);
+        });
+    }
 
+    attachEventListeners() {
+        this.findElement("go-home").onclick = () => {
+            this.goNextPage('/home');
+        };
+        // 友達リクエストのボタンにイベントリスナーを追加
+        const acceptButtons = document.querySelectorAll('#friend-request button[id="accept"]');
+        acceptButtons.forEach(button => {
+            const key = button.parentElement.id;
+            button.onclick = () => {
+                this.acceptFriendRequest(key);
+            };
+        });
+        const rejectButtons = document.querySelectorAll('#friend-request button[id="reject"]');
+        rejectButtons.forEach(button => {
+            const key = button.parentElement.id;
+            console.log("key", key);
+            button.onclick = () => {
+                this.rejectFriendRequest(key);
+            };
+        });
+        const addButtons = document.querySelectorAll('#user-list button');
+        addButtons.forEach(button => {
+            button.onclick = () => {
+                this.handleAddFriend(button.id);
+            };
+        });
+    }
     get html() {
         return `
-            <h1>Friend Page</h1>
-            <h2>Friend List</h2>
-            <ul id="friend-list">
-            </ul>
-
-            <h2>Friend Request</h2>
-            <ul id="friend-request">
+        <h1>Friend Page</h1>
+        <h2>Friend List</h2>
+        <ul id="friend-list">
+        </ul>
+        
+        <h2>Friend Request</h2>
+        <ul id="friend-request">
             </ul>
 
             <h2 id="user-list">User List</h2>

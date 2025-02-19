@@ -204,7 +204,6 @@ def add_friend_api(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-# request: user_id
 def accept_friend_api(request):
     if request.method != 'POST':
         print("Invalid request method")
@@ -218,6 +217,28 @@ def accept_friend_api(request):
         friend_request.save()
         print("Friend request accepted")
         return JsonResponse({'status': 'success', 'message': 'Friend request sent'})
+    except ObjectDoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def reject_friend_api(request):
+    if request.method != 'POST':
+        print("Invalid request method")
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+    try:
+        friend_id = request.POST.get('friend_id')
+        print("reject_friend_api")
+        print("friend_id", friend_id)
+        friend_request = Friend.objects.get(user_id=friend_id, friend_id=request.user.id)
+        friend_request.status = 'rejected'
+        friend_request.save()
+        print("Friend request rejected")
+        return JsonResponse({'status': 'success', 'message': 'Friend request rejected'})
     except ObjectDoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'User not found'}, status=404)
     except Exception as e:

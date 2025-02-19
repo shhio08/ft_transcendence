@@ -76,7 +76,7 @@ export class FriendList extends Component {
             // console.log(users);
             const userListHtml = Object.keys(users).map(key => {
                 const user = users[key];
-                return `<li id=${key}>${user.username}<button id=${key}>Add</button></li>\n`; // ユーザ名とメールを表示
+                return `<li id=${key}><img src=${user.avatar} width="30" height="30" alt=${user.username}/>${user.username}<button id=${key}>Add</button></li>\n`; // ユーザ名とメールを表示
             }).join('');
             const list = document.getElementById("user-list");
             list.innerHTML += userListHtml;
@@ -89,7 +89,7 @@ export class FriendList extends Component {
             console.log(friends);
             const friendListHtml = Object.keys(friends).map(key => {
                 const friend = friends[key];
-                return `<li id=${key}>${friend.username}: ${friend.status}</li>\n`; // ユーザ名とメールを表示
+                return `<li id=${key}><img src=${friend.avatar} width="30" height="30" alt=${friend.username}/>${friend.username}: ${friend.status}</li>\n`; // ユーザ名とメールを表示
             }).join('');
             const list = document.getElementById("friend-list");
             list.innerHTML += friendListHtml;
@@ -101,7 +101,7 @@ export class FriendList extends Component {
         console.log(requests);
         const requestListHtml = Object.keys(requests).map(key => {
             const request = requests[key];
-            return `<li id=${key}>${request.username}<button id=${key}>Accept</button></li>\n`; // ユーザ名とボタンを表示
+            return `<li id=${key}><img src=${request.avatar} width="30" height="30" alt=${request.username}/>${request.username}<button id=${key}>Accept</button></li>\n`; // ユーザ名とボタンを表示
         }).join('');
         const list = document.getElementById("friend-request");
         list.innerHTML += requestListHtml;

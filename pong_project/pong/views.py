@@ -115,12 +115,14 @@ def user_list_api(request):
 		user_list = User.objects.all()
 		user_data = {}
 		for user in user_list:
+			if user.id == request.user.id:
+				continue
 			user_data[str(user.id)] = {
 				'username': user.username,
 				'email': user.email,
 				'avatar': user.get_avatar_url(),
 				'password': user.password
-		    }
+			}
 		return JsonResponse({
 		    'status': 'success',
 		    'user_list': user_data
@@ -144,6 +146,8 @@ def friend_list_api(request):
         for friend in friend_db:
             user = user_list.get(id=friend.friend_id)
             print(user.id, user.username, friend.status)
+            if user.id == request.user.id:
+                continue
 			# TODO error handling
             friend_list[str(user.id)] = {
                 'username': user.username,

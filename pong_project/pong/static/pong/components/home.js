@@ -81,8 +81,16 @@ export class Home extends Component {
         (game) => `
           <div>
             <p>Mode: ${game.mode}</p>
-            <p>Opponent: ${game.opponent}</p>
-            <p>Your Score: ${game.user_score} - Opponent Score: ${game.opponent_score}</p>
+            <p>
+              <img src="${
+                game.user_avatar || "/static/pong/images/avatar-default.jpg"
+              }" alt="Your Avatar" style="width: 50px; height: 50px;">
+              ${game.user_nickname}: ${game.user_score} - 
+              <img src="${
+                game.opponent_avatar || "/static/pong/images/avatar-default.jpg"
+              }" alt="Opponent Avatar" style="width: 50px; height: 50px;">
+              ${game.opponent}: ${game.opponent_score}
+            </p>
           </div>
         `
       )

@@ -74,6 +74,20 @@ export class Home extends Component {
       });
   }
 
+  attachEventListeners() {
+    this.findElement("logout-button").onclick = () => {
+      this.handleLogout();
+    };
+    this.findElement("start-game-button").onclick = () => {
+      this.goNextPage("/game");
+    };
+    this.findElement("edit-profile-button").onclick = () => {
+      this.goNextPage("/edit-profile");
+    };
+    this.findElement("friend-list-button").onclick = () => {
+      this.goNextPage("/friend-list");
+    };
+  }
   renderGameHistory() {
     const historyContainer = this.findElement("game-history");
     historyContainer.innerHTML = this.state.gameHistory
@@ -149,6 +163,7 @@ export class Home extends Component {
             <button id="local-game-button">Local Game</button>
             <button id="online-game-button">Online Game</button>
             <button id="edit-profile-button">Edit Profile</button>
+            <button id="friend-list-button">Friend List</button>
             <div id="game-history"></div>
         `;
   }

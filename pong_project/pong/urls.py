@@ -2,6 +2,7 @@ from django.urls import path
 from .views import login_api, logout_api, signup_api, user_info_api, update_user_info_api, user_count
 from .views import create_game, get_game, create_player, get_players, update_player_score, update_game_winner, get_result, get_user_game_history
 from .views import update_player_score, update_game_winner, get_result
+from .views import user_list_api, friend_list_api, accept_friend_api, add_friend_api, reject_friend_api
 
 urlpatterns = [
     path('api/login/', login_api, name='login_api'),  # ログインAPIのパスを追加
@@ -19,4 +20,9 @@ urlpatterns = [
     path('api/update-game-winner/', update_game_winner, name='update_game_winner'),
     path('api/get-result/', get_result, name='get_result'),
     path('api/user-game-history/', get_user_game_history, name='get_user_game_history'),
+    path('api/user-list/', user_list_api, name='user_list_api'),  # ユーザー一覧取得APIのパスを追加
+    path('api/friend-list/', friend_list_api, name='friend_list_api'),  # ユーザー一覧取得APIのパスを追加
+    path('api/accept-friend/', accept_friend_api, name='friend_request_api'),  # フレンドリクエストAPIのパスを追加
+    path('api/add-friend/', add_friend_api, name='add_friend_api'),  # フレンド追加APIのパスを追加
+    path('api/reject-friend/', reject_friend_api, name='reject_friend_api'),  # フレンドリクエスト拒否APIのパスを追加
 ]

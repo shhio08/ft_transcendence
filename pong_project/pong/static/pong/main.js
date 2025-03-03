@@ -7,6 +7,8 @@ import { Signup } from "./components/signup.js";
 import { Router } from "./core/router.js";
 import { EditProfile } from "./components/edit-profile.js";
 import { LocalGameOptions } from "./components/local-game-options.js";
+import { FriendList } from "./components/friend_list.js";
+
 let router = new Router(document.getElementById("app"), [
   {
     path: "/",
@@ -41,6 +43,11 @@ let router = new Router(document.getElementById("app"), [
   {
     path: "/edit-profile",
     component: EditProfile,
+    state: {},
+  },
+  {
+    path: "/friend-list",
+    component: FriendList,
     state: {},
   },
   {

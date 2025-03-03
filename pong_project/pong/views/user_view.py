@@ -18,7 +18,8 @@ def user_info_api(request):
         'status': 'success',
         'user': {
             'username': user.username,
-            'avatar': avatar_url
+            'avatar': avatar_url,
+            'two_factor_enabled': user.two_factor_enabled
         }
     })
 

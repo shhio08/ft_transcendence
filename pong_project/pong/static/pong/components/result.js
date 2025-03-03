@@ -10,12 +10,27 @@ export class Result extends Component {
     }
     this.loadResultData();
 
-    // カスタムイベントをリッスン
-    window.addEventListener("scoreUpdated", (event) => {
-      if (event.detail.gameId === this.gameId) {
-        this.loadResultData(); // スコアが更新されたら結果を再取得
-      }
-    });
+    // カスタムイベントリスナーを保存
+    this._boundScoreUpdatedHandler = this.handleScoreUpdated.bind(this);
+    window.addEventListener("scoreUpdated", this._boundScoreUpdatedHandler);
+
+    // クリーンアップ関数を登録
+    if (this.router && this.router.registerCleanup) {
+      this.router.registerCleanup(() => {
+        window.removeEventListener(
+          "scoreUpdated",
+          this._boundScoreUpdatedHandler
+        );
+        console.log("Result component cleaned up");
+      });
+    }
+  }
+
+  handleScoreUpdated(event) {
+    if (event.detail.gameId === this.gameId) {
+      console.log("Score updated event received, reloading result data");
+      this.loadResultData();
+    }
   }
 
   loadResultData() {

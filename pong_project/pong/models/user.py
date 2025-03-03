@@ -33,6 +33,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    
+    # 2FA関連フィールド
+    two_factor_enabled = models.BooleanField(default=False)
+    totp_secret = models.CharField(max_length=255, blank=True, null=True)
+    backup_codes = models.JSONField(default=list, blank=True, null=True)
 
     objects = UserManager()
 
@@ -46,3 +51,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.avatar:
             return self.avatar.url
         return '/static/pong/images/avatar-default.jpg'
+        
+    def enable_2fa(self, secret):
+        """2要素認証を有効化"""
+        self.totp_secret = secret
+        self.two_factor_enabled = True
+        self.save()
+        
+    def disable_2fa(self):
+        """2要素認証を無効化"""
+        self.totp_secret = None
+        self.two_factor_enabled = False
+        self.save()

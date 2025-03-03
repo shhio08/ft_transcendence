@@ -16,8 +16,8 @@ export class Home extends Component {
 
     fetch("/pong/api/user-info/", {
       method: "GET",
+      credentials: "include",
       headers: {
-        Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
     })
@@ -54,8 +54,8 @@ export class Home extends Component {
     const token = localStorage.getItem("authToken");
     fetch("/pong/api/user-game-history/", {
       method: "GET",
+      credentials: "include",
       headers: {
-        Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
     })
@@ -117,7 +117,6 @@ export class Home extends Component {
     };
     this.findElement("local-game-button").onclick = () => {
       const stateToPass = { username: this.state.username };
-      console.log("stateToPass:", stateToPass);
       this.goNextPage("/local-game-options", stateToPass);
     };
     this.findElement("online-game-button").onclick = () => {
@@ -134,8 +133,8 @@ export class Home extends Component {
     const token = localStorage.getItem("authToken");
     fetch("/pong/api/logout/", {
       method: "POST",
+      credentials: "include",
       headers: {
-        Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
     })

@@ -2,15 +2,24 @@ export class Router {
   constructor(rootElement, routes) {
     this.rootElement = rootElement;
     this.routes = routes;
+    this.cleanupFunctions = [];
     // popstate イベントをリッスンして、ページを更新
     window.addEventListener("popstate", (event) => {
       this.handlePopState(event);
     });
   }
 
+  registerCleanup(cleanupFunction) {
+    this.cleanupFunctions.push(cleanupFunction);
+  }
+
   goNextPage(path, state = {}) {
-    console.log("Navigating to:", path);
-    console.log("State:", state); // stateの内容を確認
+    // console.log("Navigating to:", path);
+    // console.log("State:", state);
+
+    // 前のページのクリーンアップ関数を実行
+    this.executeCleanup();
+
     if (path === "/home" && !this.isLoggedIn()) {
       console.error("User not logged in");
       this.goNextPage("/login");
@@ -72,5 +81,19 @@ export class Router {
   isLoggedIn() {
     // トークンが存在するか確認
     return !!localStorage.getItem("authToken");
+  }
+
+  executeCleanup() {
+    // すべてのクリーンアップ関数を実行
+    while (this.cleanupFunctions.length > 0) {
+      const cleanup = this.cleanupFunctions.pop();
+      if (typeof cleanup === "function") {
+        try {
+          cleanup();
+        } catch (error) {
+          console.error("Error during cleanup:", error);
+        }
+      }
+    }
   }
 }

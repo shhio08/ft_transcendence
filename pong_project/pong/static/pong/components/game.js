@@ -5,38 +5,86 @@ export class Game extends Component {
     super(router, params, state);
     this.gameId = params.gameId; // ルートパラメータからゲームIDを取得
     this.isGameRunning = true;
+    this.animationFrameId = null; // requestAnimationFrameのIDを保存
     this.loadGameData();
 
-    // beforeunload イベントでゲームループを停止
-    window.addEventListener("beforeunload", this.stopGameLoop.bind(this));
+    // イベントリスナー参照を保存するための変数
+    this._boundStopGameLoop = this.stopGameLoop.bind(this);
+    this._boundHandleVisibilityChange = this.handleVisibilityChange.bind(this);
 
-    // visibilitychange イベントでタブが非アクティブになったときにゲームループを一時停止
+    // イベントリスナーを保存した参照で登録
+    window.addEventListener("beforeunload", this._boundStopGameLoop);
     document.addEventListener(
       "visibilitychange",
-      this.handleVisibilityChange.bind(this)
+      this._boundHandleVisibilityChange
+    );
+
+    console.log("Game component initialized with ID:", this.gameId);
+
+    // デバッグ用
+    window._gameDebug = this;
+
+    this.cleanupFunction = () => {
+      console.log("Cleanup function triggered for game:", this.gameId);
+      this.stopGameLoop();
+      this.removeAllEventListeners();
+      this.isGameRunning = false;
+      delete window._gameDebug; // デバッグ参照を削除
+      console.log("Game cleanup complete - Game loop should be stopped");
+    };
+
+    if (this.router && this.router.registerCleanup) {
+      this.router.registerCleanup(this.cleanupFunction);
+    }
+  }
+
+  removeAllEventListeners() {
+    console.log("Removing all event listeners");
+    window.removeEventListener("beforeunload", this._boundStopGameLoop);
+    document.removeEventListener(
+      "visibilitychange",
+      this._boundHandleVisibilityChange
     );
   }
 
   stopGameLoop() {
+    console.log("Stopping game loop");
     this.isGameRunning = false;
+
+    // アニメーションフレームをキャンセル
+    if (this.animationFrameId) {
+      console.log("Cancelling animation frame:", this.animationFrameId);
+      window.cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+
+    // もしsetIntervalを使っている場合（gameTimerId等の変数があれば）
+    if (this.gameTimerId) {
+      console.log("Clearing game timer:", this.gameTimerId);
+      clearInterval(this.gameTimerId);
+      this.gameTimerId = null;
+    }
   }
 
   handleVisibilityChange() {
-    if (document.visibilityState === "hidden") {
-      this.stopGameLoop();
-    } else if (document.visibilityState === "visible") {
+    if (document.hidden) {
+      console.log("Tab hidden - pausing game");
+      this.isGameRunning = false;
+    } else if (!document.hidden && !this.gameEnded) {
+      console.log("Tab visible - resuming game");
       this.isGameRunning = true;
-      this.startGameLoop();
     }
   }
 
   destroy() {
-    this.stopGameLoop();
-    // 必要に応じて他のクリーンアップ処理を追加
+    console.log("Game component being destroyed");
+    this.cleanupFunction();
   }
 
   loadGameData() {
-    fetch(`/pong/api/get-game/?game_id=${this.gameId}`)
+    fetch(`/pong/api/get-game/?game_id=${this.gameId}`, {
+      credentials: "include",
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -61,7 +109,9 @@ export class Game extends Component {
   }
 
   loadPlayerData() {
-    fetch(`/pong/api/get-players/?game_id=${this.gameId}`)
+    fetch(`/pong/api/get-players/?game_id=${this.gameId}`, {
+      credentials: "include",
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -100,7 +150,7 @@ export class Game extends Component {
 
   initGame() {
     this.score = { player1: 0, player2: 0 };
-    this.ball = { x: 400, y: 200, radius: 10, speedX: 2, speedY: 2 };
+    this.ball = { x: 400, y: 200, radius: 10, speedX: 12, speedY: 12 };
     this.paddle1 = { x: 10, y: 150, width: 10, height: 100, speed: 5 };
     this.paddle2 = { x: 780, y: 150, width: 10, height: 100, speed: 5 };
     this.setupCanvas();
@@ -185,14 +235,19 @@ export class Game extends Component {
     // ゲームループの開始
     const loop = () => {
       if (!this.isGameRunning) return; // ゲームが終了している場合はループを停止
-      this.update(); // ゲームの状態を更新
+      this.update(); // ゲームの状態を更新（ここで物理演算のみ行う）
       this.render(); // ゲームの描画
-      requestAnimationFrame(loop); // 次のフレームを要求
+      this.animationFrameId = requestAnimationFrame(loop); // 次のフレームを要求（ここだけで管理）
     };
-    loop();
+    this.animationFrameId = requestAnimationFrame(loop); // 最初のフレームをリクエスト
   }
 
   update() {
+    if (!this.isGameRunning) {
+      console.log("Game update skipped - Game not running");
+      return;
+    }
+
     // ボールの位置を更新
     this.ball.x += this.ball.speedX;
     this.ball.y += this.ball.speedY;
@@ -235,11 +290,10 @@ export class Game extends Component {
   }
 
   checkForWinner() {
-    const winningScore = 3; // 勝利に必要なスコア
+    const winningScore = 3;
     let winnerIndex = null;
     let maxScore = 0;
 
-    // スコアを比較して勝者を決定
     this.state.players.forEach((player, index) => {
       const playerScore = index === 0 ? this.score.player1 : this.score.player2;
       if (playerScore >= winningScore && playerScore > maxScore) {
@@ -251,39 +305,28 @@ export class Game extends Component {
     if (winnerIndex !== null) {
       const winner = this.state.players[winnerIndex];
       alert(`Player ${winner.nickname} wins!`);
-      this.isGameRunning = false; // ゲームを停止
 
-      // APIを呼び出してゲームの勝者を更新
-      fetch(
-        `/pong/api/update-game-winner/?game_id=${this.gameId}&winner_id=${winner.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            console.error("Error updating game winner:", data.error);
-          } else {
-            console.log("Game winner updated successfully");
-          }
-        })
-        .catch((error) => {
-          console.error("Error updating game winner:", error);
-        });
+      // ゲーム終了フラグを設定
+      this.gameEnded = true;
 
-      // APIを呼び出してプレイヤーのスコアを更新
+      // 各プレイヤーのスコアを更新
       this.state.players.forEach((player, index) => {
         const score = index === 0 ? this.score.player1 : this.score.player2;
         this.updatePlayerScore(player.id, score);
       });
 
-      // ルートを変更する前にゲームを停止
-      this.isGameRunning = false;
-      this.router.goNextPage(`/result/${this.gameId}`);
+      // 確実に停止する
+      this.stopGameLoop();
+
+      // クリーンアップを実行
+      if (this.cleanupFunction) {
+        this.cleanupFunction();
+      }
+
+      // 結果ページに遷移する前に少し待つ（スコア更新APIが完了する時間）
+      setTimeout(() => {
+        this.router.goNextPage(`/result/${this.gameId}`);
+      }, 1000); // 1秒待機に変更
     }
   }
 
@@ -342,18 +385,27 @@ export class Game extends Component {
   }
 
   updatePlayerScore(playerId, score) {
+    console.log(`Updating score for player ${playerId} to ${score}`);
+
     fetch(
       `/pong/api/update-player-score/?player_id=${playerId}&score=${score}`,
       {
         method: "POST",
+        credentials: "include",
       }
     )
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
         if (data.success) {
+          console.log(`Score updated successfully for player ${playerId}`);
           // スコア更新が成功したらカスタムイベントを発行
           const scoreUpdatedEvent = new CustomEvent("scoreUpdated", {
-            detail: { gameId: this.gameId }, // thisを使ってgameIdを参照
+            detail: { gameId: this.gameId },
           });
           window.dispatchEvent(scoreUpdatedEvent);
         } else {

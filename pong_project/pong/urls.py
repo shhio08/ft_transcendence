@@ -3,9 +3,14 @@ from .views import login_api, logout_api, signup_api, user_info_api, update_user
 from .views import create_game, get_game, create_player, get_players, update_player_score, update_game_winner, get_result, get_user_game_history
 from .views import update_player_score, update_game_winner, get_result
 from .views import user_list_api, friend_list_api, accept_friend_api, add_friend_api, reject_friend_api
+from .views import verify_2fa_api, setup_2fa_api, confirm_2fa_api, disable_2fa_api
 
 urlpatterns = [
     path('api/login/', login_api, name='login_api'),  # ログインAPIのパスを追加
+    path('api/verify-2fa/', verify_2fa_api, name='verify_2fa_api'),
+    path('api/setup-2fa/', setup_2fa_api, name='setup_2fa_api'),
+    path('api/confirm-2fa/', confirm_2fa_api, name='confirm_2fa_api'),
+    path('api/disable-2fa/', disable_2fa_api, name='disable_2fa_api'),
     path('api/user-count/', user_count, name='user_count'),  # ユーザー数取得APIのパスを追加
     path('api/logout/', logout_api, name='logout_api'),  # ログアウトAPIのパスを追加
     path('api/signup/', signup_api, name='signup_api'),  # サインアップAPIのパスを追加

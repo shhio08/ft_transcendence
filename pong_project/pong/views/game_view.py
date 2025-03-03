@@ -6,6 +6,7 @@ import json
 from django.contrib.auth.decorators import login_required
 
 @csrf_exempt
+@login_required
 def create_game(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -15,6 +16,7 @@ def create_game(request):
         )
         return JsonResponse({'id': str(game.id), 'message': 'Game created successfully'}, status=201)
 
+@login_required
 def get_game(request):
     game_id = request.GET.get('game_id')
     if not game_id:
@@ -32,6 +34,7 @@ def get_game(request):
         return JsonResponse({'error': 'Game not found'}, status=404)
 
 @csrf_exempt
+@login_required
 def update_game_winner(request):
     if request.method == 'POST':
         try:

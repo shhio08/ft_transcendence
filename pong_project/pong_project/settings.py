@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,9 @@ INSTALLED_APPS = [
     'pong',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
 ]
 
 ROOT_URLCONF = 'pong_project.urls'
@@ -140,10 +145,24 @@ AUTH_USER_MODEL = "pong.User"
 # REST Frameworkの設定（必要に応じて）
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',  # Token認証をデフォルトに設定
+        'pong.authentication.JWTCookieAuthentication',
+        'rest_framework.authentication.TokenAuthentication',  # 既存のトークン認証も残す
     ],
     # 他の設定...
 }
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# JWT設定
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_COOKIE': 'access_token',  # クッキー名
+    'AUTH_COOKIE_SECURE': False,  # 開発環境ではFalse、本番ではTrue
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_SAMESITE': 'Lax',
+}

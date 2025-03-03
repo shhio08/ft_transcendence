@@ -22,7 +22,6 @@ def user_list_api(request):
 				'username': user.username,
 				'email': user.email,
 				'avatar': user.get_avatar_url(),
-				'password': user.password
 			}
 		return JsonResponse({
 		    'status': 'success',

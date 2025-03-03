@@ -34,6 +34,7 @@ def create_player(request):
             print(f"Debug: Exception occurred - {str(e)}")  # デバッグログ
             return JsonResponse({'error': str(e)}, status=400)
 
+@login_required
 def get_players(request):
     game_id = request.GET.get('game_id')
     if not game_id:
@@ -74,6 +75,7 @@ def update_player_score(request):
         except Exception as e:
             return JsonResponse({'error': str(e), 'success': False}, status=400)
 
+@login_required
 def get_result(request):
     game_id = request.GET.get('game_id')
     if not game_id:

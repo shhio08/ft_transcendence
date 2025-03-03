@@ -8,6 +8,7 @@ import { Router } from "./core/router.js";
 import { EditProfile } from "./components/edit-profile.js";
 import { LocalGameOptions } from "./components/local-game-options.js";
 import { FriendList } from "./components/friend_list.js";
+import { TwoFactorSettings } from "./components/two-factor-settings.js";
 
 let router = new Router(document.getElementById("app"), [
   {
@@ -53,6 +54,11 @@ let router = new Router(document.getElementById("app"), [
   {
     path: "/local-game-options",
     component: LocalGameOptions,
+    state: {},
+  },
+  {
+    path: "/two-factor-settings",
+    component: TwoFactorSettings,
     state: {},
   },
 ]);

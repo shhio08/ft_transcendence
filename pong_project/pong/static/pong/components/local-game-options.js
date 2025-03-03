@@ -13,7 +13,6 @@ export class LocalGameOptions extends Component {
         "Player 4",
       ],
     };
-    console.log("state.username: " + this.state.username);
     this.render();
     this.attachEventListeners();
     this.renderNicknames();
@@ -73,6 +72,7 @@ export class LocalGameOptions extends Component {
 
     fetch("/pong/api/create-game/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -97,6 +97,7 @@ export class LocalGameOptions extends Component {
     const playerCreationPromises = nicknames.map((nickname, index) => {
       return fetch("/pong/api/create-player/", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -108,7 +109,6 @@ export class LocalGameOptions extends Component {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("Player creation response:", data);
           if (data.message !== "Player created successfully") {
             console.error(data.error);
           }

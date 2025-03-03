@@ -5,3 +5,5 @@ djangorestframework-simplejwt>=4.8.0
 django_otp>=1.0.0
 psycopg2-binary>=2.9.0
 Pillow>=8.0.0
+pyotp>=2.6.0
+qrcode>=7.3.1

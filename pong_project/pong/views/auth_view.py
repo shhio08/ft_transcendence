@@ -12,6 +12,7 @@ from django.conf import settings
 import os
 import shutil
 from django.core.files import File
+from pong.models import UserStatus  # 追加
 
 User = get_user_model()
 
@@ -42,6 +43,11 @@ def login_api(request):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
+            
+            # ユーザーのオンライン状態を更新
+            user_status, created = UserStatus.objects.get_or_create(user=user)
+            user_status.is_online = True
+            user_status.save()
             
             # 2FAが有効な場合はそのステータスを返す
             if user.two_factor_enabled:
@@ -106,6 +112,15 @@ def verify_2fa_api(request):
 @csrf_exempt
 def logout_api(request):
     if request.method == 'POST':
+        # ユーザーがログインしている場合、オンライン状態を更新
+        if request.user.is_authenticated:
+            try:
+                user_status = UserStatus.objects.get(user=request.user)
+                user_status.is_online = False
+                user_status.save()
+            except UserStatus.DoesNotExist:
+                pass
+        
         # トークン認証のログアウト処理（レガシーサポート）
         token_key = request.headers.get('Authorization', '').split(' ')[1] if request.headers.get('Authorization') else None
         if token_key:
@@ -282,6 +297,9 @@ def signup_api(request):
                     print(f"Default avatar file not found at {default_avatar_path}")
             
             user.save()
+            
+            # ユーザーのオンライン状態を作成
+            UserStatus.objects.create(user=user, is_online=True)
             
             login(request, user)
             token, created = Token.objects.get_or_create(user=user)

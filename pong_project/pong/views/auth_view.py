@@ -9,6 +9,9 @@ import qrcode
 import base64
 import io
 from django.conf import settings
+import os
+import shutil
+from django.core.files import File
 
 User = get_user_model()
 
@@ -247,18 +250,53 @@ def signup_api(request):
         
         try:
             user = User.objects.create_user(username=username, email=email, password=password)
+            
+            # アバターがアップロードされた場合
             if avatar:
-                user.avatar.save(f'{username}_avatar.png', avatar, save=True)
+                user.avatar.save('avatar.png', avatar, save=True)
+            # アバターがアップロードされなかった場合はデフォルト画像をコピー
+            else:
+                import os
+                import shutil
+                from django.core.files import File
+                from django.conf import settings
+                
+                # デフォルトアバター画像のパス
+                default_avatar_path = os.path.join(settings.STATIC_ROOT, 'pong/images/avatar-default.jpg')
+                
+                # 一時ファイルパス
+                temp_path = f'/tmp/avatar_{user.id}.jpg'
+                
+                # デフォルトアバターをコピー
+                if os.path.exists(default_avatar_path):
+                    shutil.copy(default_avatar_path, temp_path)
+                    
+                    # ユーザーのアバターとして保存（ファイル名はupload_to関数で自動管理）
+                    with open(temp_path, 'rb') as f:
+                        user.avatar.save('avatar.jpg', File(f), save=True)
+                    
+                    # 一時ファイルを削除
+                    os.remove(temp_path)
+                    print(f"Created avatar file for user {user.id} using default avatar")
+                else:
+                    print(f"Default avatar file not found at {default_avatar_path}")
+            
             user.save()
             
             login(request, user)
             token, created = Token.objects.get_or_create(user=user)
             
-            return JsonResponse({
+            # JWTトークンも生成
+            response = JsonResponse({
                 'status': 'success',
                 'message': 'User created successfully',
                 'token': token.key
             })
+            
+            # クッキーにJWTを設定
+            response = set_jwt_cookies(response, user)
+            return response
+            
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)

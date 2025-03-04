@@ -39,6 +39,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     totp_secret = models.CharField(max_length=255, blank=True, null=True)
     backup_codes = models.JSONField(default=list, blank=True, null=True)
 
+    # 42 OAuth用のフィールドを追加
+    intra_42_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+
     objects = UserManager()
 
     USERNAME_FIELD = 'username'

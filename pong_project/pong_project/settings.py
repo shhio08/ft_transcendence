@@ -166,3 +166,8 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_SAMESITE': 'Lax',
 }
+
+# 42 OAuth設定
+FORTY_TWO_CLIENT_ID = 'u-s4t2ud-46adc406116a39c11f807fb8e35377ae95308aed832f497a3a03f7c39513253f'
+FORTY_TWO_CLIENT_SECRET = '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'
+FORTY_TWO_REDIRECT_URI = 'http://localhost:8080/oauth/callback'  # 本番環境では適切なURIに変更

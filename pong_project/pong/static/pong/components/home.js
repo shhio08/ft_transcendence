@@ -74,20 +74,6 @@ export class Home extends Component {
       });
   }
 
-  attachEventListeners() {
-    this.findElement("logout-button").onclick = () => {
-      this.handleLogout();
-    };
-    this.findElement("start-game-button").onclick = () => {
-      this.goNextPage("/game");
-    };
-    this.findElement("edit-profile-button").onclick = () => {
-      this.goNextPage("/edit-profile");
-    };
-    this.findElement("friend-list-button").onclick = () => {
-      this.goNextPage("/friend-list");
-    };
-  }
   renderGameHistory() {
     const historyContainer = this.findElement("game-history");
     historyContainer.innerHTML = this.state.gameHistory
@@ -126,6 +112,14 @@ export class Home extends Component {
     this.findElement("edit-profile-button").onclick = () => {
       this.goNextPage("/edit-profile");
     };
+
+    // friend-list-buttonのイベントリスナーを追加
+    const friendListBtn = this.findElement("friend-list-button");
+    if (friendListBtn) {
+      friendListBtn.onclick = () => {
+        this.goNextPage("/friend-list");
+      };
+    }
   }
 
   handleLogout() {

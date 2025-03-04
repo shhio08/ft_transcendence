@@ -112,22 +112,32 @@ export class Game extends Component {
     fetch(`/pong/api/get-players/?game_id=${this.gameId}`, {
       credentials: "include",
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((data) => {
-        console.log("Player data:", data); // デバッグログ
         if (data.error) {
           console.error(data.error);
         } else if (data.players && data.players.length > 0) {
-          this.state.players = data.players; // プレイヤーデータをstateに設定
-          console.log("Players set in state:", this.state.players); // デバッグログ
-          this.setupScoreDisplay(); // プレイヤーデータが設定された後に呼び出す
-        } else {
-          console.error("No players found");
+          this.state.players = data.players;
+
+          // プレイヤー数を更新
+          this.playerCount = this.state.players.length;
+
+          // プレイヤー数に基づきパドルを設定
+          this.setupPaddles();
+
+          // 4人プレイの場合、UI要素を表示
+          if (this.playerCount >= 4) {
+            const controlsElement = this.findElement("four-player-controls");
+            if (controlsElement) controlsElement.style.display = "block";
+
+            const fourPlayerContainer = this.findElement(
+              "four-player-container"
+            );
+            if (fourPlayerContainer)
+              fourPlayerContainer.style.display = "block";
+          }
+
+          this.setupScoreDisplay();
         }
       })
       .catch((error) => {
@@ -149,16 +159,24 @@ export class Game extends Component {
   }
 
   initGame() {
-    this.score = { player1: 0, player2: 0 };
-    this.balls = []; // 複数のボールを格納する配列
+    this.score = { player1: 0, player2: 0, player3: 0, player4: 0 };
+    this.balls = [];
+
+    // デフォルトは2人プレイ
+    this.playerCount = 2;
+
+    // 基本パドル (2人プレイ用)
     this.paddle1 = { x: 10, y: 150, width: 10, height: 100, speed: 5 };
     this.paddle2 = { x: 780, y: 150, width: 10, height: 100, speed: 5 };
 
-    // オプションに基づいてボールを初期化するため、まずオプションを取得
+    // 4人プレイ用のパドル（初期は未定義）
+    this.paddle3 = null;
+    this.paddle4 = null;
+
     this.loadGameOptions(() => {
       this.setupCanvas();
       this.setupControls();
-      this.initBalls(); // 新しいメソッド
+      this.initBalls();
       this.startGameLoop();
     });
   }
@@ -182,17 +200,49 @@ export class Game extends Component {
   }
 
   setupScoreDisplay() {
-    console.log("setupScoreDisplay called"); // デバッグログ
+    console.log("setupScoreDisplay called");
     this.player1ScoreElement = this.findElement("player1-score");
     this.player2ScoreElement = this.findElement("player2-score");
+    this.player3ScoreElement = this.findElement("player3-score");
+    this.player4ScoreElement = this.findElement("player4-score");
 
     if (this.state.players && this.state.players.length > 0) {
       const player1Name = this.state.players[0]?.nickname || "Player 1";
-      const player2Name = this.state.players[1]?.nickname || "Player 2";
+      const player2Name =
+        this.state.players.length > 1
+          ? this.state.players[1]?.nickname || "Player 2"
+          : "Player 2";
 
       if (this.player1ScoreElement && this.player2ScoreElement) {
         this.player1ScoreElement.innerText = `${player1Name}: 0`;
         this.player2ScoreElement.innerText = `${player2Name}: 0`;
+      }
+
+      // 4人プレイの場合は追加プレイヤーのスコア表示
+      if (
+        this.playerCount >= 4 &&
+        this.player3ScoreElement &&
+        this.player4ScoreElement
+      ) {
+        const player3Name =
+          this.state.players.length > 2
+            ? this.state.players[2]?.nickname || "Player 3"
+            : "Player 3";
+        const player4Name =
+          this.state.players.length > 3
+            ? this.state.players[3]?.nickname || "Player 4"
+            : "Player 4";
+
+        this.player3ScoreElement.innerText = `${player3Name}: 0`;
+        this.player4ScoreElement.innerText = `${player4Name}: 0`;
+
+        // 4人プレイ用に表示
+        this.findElement("four-player-container").style.display = "block";
+      } else {
+        // 2人プレイでは非表示
+        if (this.findElement("four-player-container")) {
+          this.findElement("four-player-container").style.display = "none";
+        }
       }
     } else {
       console.error("No players found");
@@ -208,12 +258,27 @@ export class Game extends Component {
       this.player2ScoreElement.innerText = `${
         this.state.players[1]?.nickname || "Player 2"
       }: ${this.score.player2}`;
+
+      // 4人プレイの場合は追加プレイヤーのスコアも更新
+      if (
+        this.playerCount >= 4 &&
+        this.player3ScoreElement &&
+        this.player4ScoreElement
+      ) {
+        this.player3ScoreElement.innerText = `${
+          this.state.players[2]?.nickname || "Player 3"
+        }: ${this.score.player3}`;
+        this.player4ScoreElement.innerText = `${
+          this.state.players[3]?.nickname || "Player 4"
+        }: ${this.score.player4}`;
+      }
     }
   }
 
   setupControls() {
     document.addEventListener("keydown", (event) => {
       switch (event.key) {
+        // プレイヤー1のコントロール (左上)
         case "w":
           this.paddle1.y = Math.max(this.paddle1.y - this.paddle1.speed, 0);
           break;
@@ -223,6 +288,8 @@ export class Game extends Component {
             400 - this.paddle1.height
           );
           break;
+
+        // プレイヤー2のコントロール (右上)
         case "ArrowUp":
           this.paddle2.y = Math.max(this.paddle2.y - this.paddle2.speed, 0);
           break;
@@ -231,6 +298,34 @@ export class Game extends Component {
             this.paddle2.y + this.paddle2.speed,
             400 - this.paddle2.height
           );
+          break;
+
+        // 4人プレイの場合のみ追加のコントロール
+        case "e":
+          if (this.paddle3) {
+            this.paddle3.y = Math.max(this.paddle3.y - this.paddle3.speed, 0);
+          }
+          break;
+        case "d":
+          if (this.paddle3) {
+            this.paddle3.y = Math.min(
+              this.paddle3.y + this.paddle3.speed,
+              400 - this.paddle3.height
+            );
+          }
+          break;
+        case "i":
+          if (this.paddle4) {
+            this.paddle4.y = Math.max(this.paddle4.y - this.paddle4.speed, 0);
+          }
+          break;
+        case "k":
+          if (this.paddle4) {
+            this.paddle4.y = Math.min(
+              this.paddle4.y + this.paddle4.speed,
+              400 - this.paddle4.height
+            );
+          }
           break;
       }
     });
@@ -284,14 +379,55 @@ export class Game extends Component {
         ball.speedX *= -1;
       }
 
+      // 4人プレイの場合、追加パドルとの衝突判定
+      if (this.playerCount >= 4) {
+        // プレイヤー3のバーでの反射 (左下)
+        if (
+          ball.x <= this.paddle3.x + this.paddle3.width &&
+          ball.y >= this.paddle3.y &&
+          ball.y <= this.paddle3.y + this.paddle3.height
+        ) {
+          ball.speedX *= -1;
+        }
+
+        // プレイヤー4のバーでの反射 (右下)
+        if (
+          ball.x >= this.paddle4.x - ball.radius &&
+          ball.y >= this.paddle4.y &&
+          ball.y <= this.paddle4.y + this.paddle4.height
+        ) {
+          ball.speedX *= -1;
+        }
+      }
+
       // ゴール判定
       if (ball.x < 0) {
-        this.score.player2 += 1;
+        // 左側のプレイヤーが逃した場合、右側のプレイヤーにポイントを与える
+        if (this.playerCount >= 4) {
+          // ボールの位置によって得点者を決定 (上下で分ける)
+          if (ball.y < 200) {
+            this.score.player2 += 1; // 右上のプレイヤーに得点
+          } else {
+            this.score.player4 += 1; // 右下のプレイヤーに得点
+          }
+        } else {
+          this.score.player2 += 1;
+        }
         this.updateScoreDisplay();
         this.checkForWinner();
         this.resetBall(ballIndex);
       } else if (ball.x > 800) {
-        this.score.player1 += 1;
+        // 右側のプレイヤーが逃した場合、左側のプレイヤーにポイントを与える
+        if (this.playerCount >= 4) {
+          // ボールの位置によって得点者を決定 (上下で分ける)
+          if (ball.y < 200) {
+            this.score.player1 += 1; // 左上のプレイヤーに得点
+          } else {
+            this.score.player3 += 1; // 左下のプレイヤーに得点
+          }
+        } else {
+          this.score.player1 += 1;
+        }
         this.updateScoreDisplay();
         this.checkForWinner();
         this.resetBall(ballIndex);
@@ -305,7 +441,13 @@ export class Game extends Component {
     let maxScore = 0;
 
     this.state.players.forEach((player, index) => {
-      const playerScore = index === 0 ? this.score.player1 : this.score.player2;
+      // 各プレイヤーのスコアを取得
+      let playerScore = 0;
+      if (index === 0) playerScore = this.score.player1;
+      else if (index === 1) playerScore = this.score.player2;
+      else if (index === 2) playerScore = this.score.player3;
+      else if (index === 3) playerScore = this.score.player4;
+
       if (playerScore >= winningScore && playerScore > maxScore) {
         maxScore = playerScore;
         winnerIndex = index;
@@ -321,7 +463,12 @@ export class Game extends Component {
 
       // 各プレイヤーのスコアを更新
       this.state.players.forEach((player, index) => {
-        const score = index === 0 ? this.score.player1 : this.score.player2;
+        let score = 0;
+        if (index === 0) score = this.score.player1;
+        else if (index === 1) score = this.score.player2;
+        else if (index === 2) score = this.score.player3;
+        else if (index === 3) score = this.score.player4;
+
         this.updatePlayerScore(player.id, score);
       });
 
@@ -375,6 +522,36 @@ export class Game extends Component {
       this.paddle2.width,
       this.paddle2.height
     );
+
+    // 4人プレイモードの場合、追加パドル描画
+    if (this.playerCount >= 4 && this.paddle3 && this.paddle4) {
+      // プレイヤー3のバー描画
+      this.context.fillRect(
+        this.paddle3.x,
+        this.paddle3.y,
+        this.paddle3.width,
+        this.paddle3.height
+      );
+
+      // プレイヤー4のバー描画
+      this.context.fillRect(
+        this.paddle4.x,
+        this.paddle4.y,
+        this.paddle4.width,
+        this.paddle4.height
+      );
+    }
+
+    // 中央線の描画（4人モードで視覚的に上下を分けるため）
+    if (this.playerCount >= 4) {
+      this.context.setLineDash([5, 5]);
+      this.context.beginPath();
+      this.context.moveTo(0, 200);
+      this.context.lineTo(800, 200);
+      this.context.strokeStyle = "white";
+      this.context.stroke();
+      this.context.setLineDash([]);
+    }
   }
 
   get html() {
@@ -385,8 +562,15 @@ export class Game extends Component {
             <span> | </span>
             <span id="player2-score">Player 2: 0</span>
         </div>
-        <p style="text-align: center;">Player 1: W, S</p>
-        <p style="text-align: center;">Player 2: ↑, ↓</p>
+        <div id="four-player-container" style="text-align: center; display: none;">
+            <span id="player3-score">Player 3: 0</span>
+            <span> | </span>
+            <span id="player4-score">Player 4: 0</span>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+            <p>Player 1: W, S &nbsp;&nbsp; Player 2: ↑, ↓</p>
+            <p id="four-player-controls" style="display: none;">Player 3: E, D &nbsp;&nbsp; Player 4: I, K</p>
+        </div>
         <div id="game-container"></div>
     `;
   }
@@ -441,6 +625,15 @@ export class Game extends Component {
           ballCount: data.ball_count || 1,
           ballSpeed: data.ball_speed || "normal",
         };
+
+        // 4人プレイの場合、コントロール表示
+        if (this.state.players && this.state.players.length >= 4) {
+          const controlsElement = this.findElement("four-player-controls");
+          if (controlsElement) {
+            controlsElement.style.display = "block";
+          }
+        }
+
         callback();
       })
       .catch((error) => {
@@ -485,5 +678,19 @@ export class Game extends Component {
         speedY: speedY,
       });
     }
+  }
+
+  // 新しいメソッド: プレイヤー数に応じてパドルを設定
+  setupPaddles() {
+    // 4人プレイの場合、追加パドルを初期化
+    if (this.playerCount >= 4) {
+      this.paddle3 = { x: 10, y: 250, width: 10, height: 100, speed: 5 };
+      this.paddle4 = { x: 780, y: 250, width: 10, height: 100, speed: 5 };
+    }
+  }
+
+  // 4人プレイか確認するヘルパーメソッド
+  isFourPlayerMode() {
+    return this.state.players && this.state.players.length >= 4;
   }
 }

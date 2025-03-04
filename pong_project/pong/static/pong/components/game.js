@@ -150,12 +150,17 @@ export class Game extends Component {
 
   initGame() {
     this.score = { player1: 0, player2: 0 };
-    this.ball = { x: 400, y: 200, radius: 10, speedX: 12, speedY: 12 };
+    this.balls = []; // 複数のボールを格納する配列
     this.paddle1 = { x: 10, y: 150, width: 10, height: 100, speed: 5 };
     this.paddle2 = { x: 780, y: 150, width: 10, height: 100, speed: 5 };
-    this.setupCanvas();
-    this.setupControls();
-    this.startGameLoop();
+
+    // オプションに基づいてボールを初期化するため、まずオプションを取得
+    this.loadGameOptions(() => {
+      this.setupCanvas();
+      this.setupControls();
+      this.initBalls(); // 新しいメソッド
+      this.startGameLoop();
+    });
   }
 
   setupCanvas() {
@@ -248,44 +253,49 @@ export class Game extends Component {
       return;
     }
 
-    // ボールの位置を更新
-    this.ball.x += this.ball.speedX;
-    this.ball.y += this.ball.speedY;
+    // 各ボールを更新
+    for (let ballIndex = 0; ballIndex < this.balls.length; ballIndex++) {
+      const ball = this.balls[ballIndex];
 
-    // 上下の壁での反射
-    if (this.ball.y <= 0 || this.ball.y >= 400) {
-      this.ball.speedY *= -1;
-    }
+      // ボールの位置を更新
+      ball.x += ball.speedX;
+      ball.y += ball.speedY;
 
-    // プレイヤー1のバーでの反射
-    if (
-      this.ball.x <= this.paddle1.x + this.paddle1.width &&
-      this.ball.y >= this.paddle1.y &&
-      this.ball.y <= this.paddle1.y + this.paddle1.height
-    ) {
-      this.ball.speedX *= -1;
-    }
+      // 上下の壁での反射
+      if (ball.y <= 0 || ball.y >= 400) {
+        ball.speedY *= -1;
+      }
 
-    // プレイヤー2のバーでの反射
-    if (
-      this.ball.x >= this.paddle2.x - this.ball.radius &&
-      this.ball.y >= this.paddle2.y &&
-      this.ball.y <= this.paddle2.y + this.paddle2.height
-    ) {
-      this.ball.speedX *= -1;
-    }
+      // プレイヤー1のバーでの反射
+      if (
+        ball.x <= this.paddle1.x + this.paddle1.width &&
+        ball.y >= this.paddle1.y &&
+        ball.y <= this.paddle1.y + this.paddle1.height
+      ) {
+        ball.speedX *= -1;
+      }
 
-    // ゴール判定
-    if (this.ball.x < 0) {
-      this.score.player2 += 1;
-      this.updateScoreDisplay();
-      this.checkForWinner();
-      this.resetBall();
-    } else if (this.ball.x > 800) {
-      this.score.player1 += 1;
-      this.updateScoreDisplay();
-      this.checkForWinner();
-      this.resetBall();
+      // プレイヤー2のバーでの反射
+      if (
+        ball.x >= this.paddle2.x - ball.radius &&
+        ball.y >= this.paddle2.y &&
+        ball.y <= this.paddle2.y + this.paddle2.height
+      ) {
+        ball.speedX *= -1;
+      }
+
+      // ゴール判定
+      if (ball.x < 0) {
+        this.score.player2 += 1;
+        this.updateScoreDisplay();
+        this.checkForWinner();
+        this.resetBall(ballIndex);
+      } else if (ball.x > 800) {
+        this.score.player1 += 1;
+        this.updateScoreDisplay();
+        this.checkForWinner();
+        this.resetBall(ballIndex);
+      }
     }
   }
 
@@ -330,10 +340,11 @@ export class Game extends Component {
     }
   }
 
-  resetBall() {
-    this.ball.x = 400;
-    this.ball.y = 200;
-    this.ball.speedX *= -1; // ボールの方向を反転
+  resetBall(ballIndex) {
+    const ball = this.balls[ballIndex];
+    ball.x = 400;
+    ball.y = 200 + ballIndex * 50;
+    ball.speedX *= -1; // ボールの方向を反転
   }
 
   render() {
@@ -343,15 +354,11 @@ export class Game extends Component {
 
     // ボールの描画
     this.context.fillStyle = "white";
-    this.context.beginPath();
-    this.context.arc(
-      this.ball.x,
-      this.ball.y,
-      this.ball.radius,
-      0,
-      Math.PI * 2
-    );
-    this.context.fill();
+    for (const ball of this.balls) {
+      this.context.beginPath();
+      this.context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      this.context.fill();
+    }
 
     // プレイヤー1のバーの描画
     this.context.fillRect(
@@ -415,5 +422,68 @@ export class Game extends Component {
       .catch((error) => {
         console.error("Error updating score:", error);
       });
+  }
+
+  // 新しいメソッド: ゲームオプションの読み込み
+  loadGameOptions(callback) {
+    fetch(`/pong/api/get-game-options/?game_id=${this.gameId}`, {
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Game options:", data);
+        this.gameOptions = {
+          ballCount: data.ball_count || 1,
+          ballSpeed: data.ball_speed || "normal",
+        };
+        callback();
+      })
+      .catch((error) => {
+        console.error("Error loading game options:", error);
+        // デフォルト値を設定
+        this.gameOptions = {
+          ballCount: 1,
+          ballSpeed: "normal",
+        };
+        callback();
+      });
+  }
+
+  // 新しいメソッド: ボールの初期化
+  initBalls() {
+    // ボールの速度を設定
+    let speedFactor = 1;
+    switch (this.gameOptions.ballSpeed) {
+      case "slow":
+        speedFactor = 0.7;
+        break;
+      case "normal":
+        speedFactor = 1;
+        break;
+      case "fast":
+        speedFactor = 1.5;
+        break;
+      default:
+        speedFactor = 1;
+    }
+
+    // ボールを初期化
+    for (let i = 0; i < this.gameOptions.ballCount; i++) {
+      const speedX = 12 * speedFactor * (i % 2 === 0 ? 1 : -1); // 2つ目のボールは逆方向に
+      const speedY = 12 * speedFactor * (i % 2 === 0 ? 1 : -1);
+
+      this.balls.push({
+        x: 400,
+        y: 200 + i * 50, // ボールの初期位置をずらす
+        radius: 10,
+        speedX: speedX,
+        speedY: speedY,
+      });
+    }
   }
 }

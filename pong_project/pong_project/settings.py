@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_otp.middleware.OTPMiddleware',
+    'pong.middleware.user_activity.UserActivityMiddleware',
 ]
 
 ROOT_URLCONF = 'pong_project.urls'

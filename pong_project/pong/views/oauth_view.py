@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import os
 import shutil
 from django.core.files import File
+from pong.models import UserStatus  # 追加
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -139,6 +140,11 @@ def oauth_42_callback(request):
         # ★ ここが重要: ユーザーをDjangoのセッションにログインさせる
         login(request, user)
         print(f"User logged in as: {user.username}")
+        
+        # ユーザーのオンライン状態を更新
+        user_status, created = UserStatus.objects.get_or_create(user=user)
+        user_status.is_online = True
+        user_status.save()
         
         # トークン認証用のトークンを生成
         token, created = Token.objects.get_or_create(user=user)

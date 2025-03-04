@@ -20,6 +20,15 @@ EOF
 
 python manage.py collectstatic --no-input --clear
 
+# ユーザーステータス更新のバックグラウンドプロセスを起動
+(
+  while true; do
+    echo "Updating user status..."
+    python manage.py update_user_status
+    sleep 300  # 5分待機
+  done
+) &
+
 # サーバー起動
 if [ "$DEBUG" = "1" ]; then
     exec python manage.py runserver 0.0.0.0:8000

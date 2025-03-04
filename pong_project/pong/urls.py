@@ -4,6 +4,7 @@ from .views import create_game, get_game, create_player, get_players, update_pla
 from .views import update_player_score, update_game_winner, get_result
 from .views import user_list_api, friend_list_api, accept_friend_api, add_friend_api, reject_friend_api
 from .views import verify_2fa_api, setup_2fa_api, confirm_2fa_api, disable_2fa_api
+from .views import oauth_42_callback
 
 urlpatterns = [
     path('api/login/', login_api, name='login_api'),  # ログインAPIのパスを追加
@@ -30,4 +31,5 @@ urlpatterns = [
     path('api/accept-friend/', accept_friend_api, name='friend_request_api'),  # フレンドリクエストAPIのパスを追加
     path('api/add-friend/', add_friend_api, name='add_friend_api'),  # フレンド追加APIのパスを追加
     path('api/reject-friend/', reject_friend_api, name='reject_friend_api'),  # フレンドリクエスト拒否APIのパスを追加
+    path('api/oauth/42/callback/', oauth_42_callback, name='oauth_42_callback'),
 ]

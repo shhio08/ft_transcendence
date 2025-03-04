@@ -9,6 +9,7 @@ import { EditProfile } from "./components/edit-profile.js";
 import { LocalGameOptions } from "./components/local-game-options.js";
 import { FriendList } from "./components/friend_list.js";
 import { TwoFactorSettings } from "./components/two-factor-settings.js";
+import { OAuthCallback } from "./components/oauth-callback.js";
 
 let router = new Router(document.getElementById("app"), [
   {
@@ -59,6 +60,11 @@ let router = new Router(document.getElementById("app"), [
   {
     path: "/two-factor-settings",
     component: TwoFactorSettings,
+    state: {},
+  },
+  {
+    path: "/oauth/callback",
+    component: OAuthCallback,
     state: {},
   },
 ]);

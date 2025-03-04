@@ -9,6 +9,22 @@ export class Login extends Component {
       event.preventDefault();
       this.handleLogin();
     };
+
+    // 42認証ボタンにイベントリスナーを追加
+    const fortyTwoAuthBtn = this.findElement("forty-two-auth");
+    if (fortyTwoAuthBtn) {
+      fortyTwoAuthBtn.onclick = () => this.handleFortyTwoAuth();
+    }
+  }
+
+  // 42認証処理を行うメソッド
+  handleFortyTwoAuth() {
+    const CLIENT_ID =
+      "u-s4t2ud-46adc406116a39c11f807fb8e35377ae95308aed832f497a3a03f7c39513253f"; // 42 APIから取得したクライアントID
+    const REDIRECT_URI = "http://localhost:8080/oauth/callback";
+
+    // 42認証ページへリダイレクト
+    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
   }
 
   handleLogin() {
@@ -103,6 +119,9 @@ export class Login extends Component {
                 <br>
                 <button type="submit">Login</button>
             </form>
+            <div class="oauth-options">
+                <button id="forty-two-auth" class="oauth-btn">Login with 42</button>
+            </div>
         `;
   }
 }

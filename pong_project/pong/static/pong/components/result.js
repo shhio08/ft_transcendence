@@ -8,6 +8,10 @@ export class Result extends Component {
       console.error("Game ID is undefined");
       return;
     }
+
+    // プレイヤーデータを格納する配列を初期化
+    this.players = [];
+
     this.loadResultData();
 
     // カスタムイベントリスナーを保存
@@ -46,10 +50,21 @@ export class Result extends Component {
           console.error(data.error);
         } else {
           this.winner = data.winner;
-          this.player1Score = data.players[0].score;
-          this.player2Score = data.players[1].score;
-          this.player1Nickname = data.players[0].nickname;
-          this.player2Nickname = data.players[1].nickname;
+
+          // 全プレイヤーデータを保存
+          this.players = data.players || [];
+
+          // 後方互換性のために、従来のプロパティも設定
+          if (this.players.length >= 1) {
+            this.player1Score = this.players[0].score;
+            this.player1Nickname = this.players[0].nickname;
+          }
+
+          if (this.players.length >= 2) {
+            this.player2Score = this.players[1].score;
+            this.player2Nickname = this.players[1].nickname;
+          }
+
           this.render();
         }
       })
@@ -61,26 +76,38 @@ export class Result extends Component {
   resetGameState() {
     // ゲームの状態を初期化
     this.winner = null;
+    this.players = [];
     this.player1Score = 0;
     this.player2Score = 0;
   }
 
+  // プレイヤースコアを表示するHTMLを生成
+  generatePlayersScoresHtml() {
+    if (!this.players || this.players.length === 0) {
+      return "<p>Loading player data...</p>";
+    }
+
+    let html = '<div class="scores-container">';
+
+    this.players.forEach((player, index) => {
+      html += `<p>Player ${index + 1} (${player.nickname}): ${
+        player.score
+      }</p>`;
+    });
+
+    html += "</div>";
+    return html;
+  }
+
   get html() {
     return `
-            <h1>Match Result</h1>
-            <p>Game ID: ${this.gameId}</p>
-            <p>Final Scores:</p>
-            <p>${this.player1Nickname}: ${
-      this.player1Score !== undefined ? this.player1Score : "Loading..."
-    }</p>
-            <p>${this.player2Nickname}: ${
-      this.player2Score !== undefined ? this.player2Score : "Loading..."
-    }</p>
-            <p>Congratulations to ${
-              this.winner || "Loading..."
-            } for winning!</p>
-            <button id="back-home-button">Return to Home</button>
-        `;
+      <h1>Match Result</h1>
+      <p>Game ID: ${this.gameId}</p>
+      <p>Final Scores:</p>
+      ${this.generatePlayersScoresHtml()}
+      <p>Congratulations to ${this.winner || "Loading..."} for winning!</p>
+      <button id="back-home-button">Return to Home</button>
+    `;
   }
 
   render() {

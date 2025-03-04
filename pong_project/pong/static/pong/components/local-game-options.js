@@ -6,6 +6,8 @@ export class LocalGameOptions extends Component {
     this.state = {
       mode: "local",
       players: 2,
+      ball_count: 1,
+      ball_speed: "normal",
       nicknames: [
         this.state.username || "Player 1",
         "Player 2",
@@ -31,6 +33,31 @@ export class LocalGameOptions extends Component {
       this.renderNicknames();
     };
 
+    this.findElement("ball-count-1-button").onclick = () => {
+      this.state.ball_count = 1;
+      this.updateBallCountButtons();
+    };
+
+    this.findElement("ball-count-2-button").onclick = () => {
+      this.state.ball_count = 2;
+      this.updateBallCountButtons();
+    };
+
+    this.findElement("ball-speed-slow-button").onclick = () => {
+      this.state.ball_speed = "slow";
+      this.updateBallSpeedButtons();
+    };
+
+    this.findElement("ball-speed-normal-button").onclick = () => {
+      this.state.ball_speed = "normal";
+      this.updateBallSpeedButtons();
+    };
+
+    this.findElement("ball-speed-fast-button").onclick = () => {
+      this.state.ball_speed = "fast";
+      this.updateBallSpeedButtons();
+    };
+
     this.findElement("start-game-button").onclick = () => {
       this.createGame();
     };
@@ -46,6 +73,37 @@ export class LocalGameOptions extends Component {
     } else {
       players2Button.style.opacity = "0.5";
       players4Button.style.opacity = "1.0";
+    }
+  }
+
+  updateBallCountButtons() {
+    const ballCount1Button = this.findElement("ball-count-1-button");
+    const ballCount2Button = this.findElement("ball-count-2-button");
+
+    if (this.state.ball_count === 1) {
+      ballCount1Button.style.opacity = "1.0";
+      ballCount2Button.style.opacity = "0.5";
+    } else {
+      ballCount1Button.style.opacity = "0.5";
+      ballCount2Button.style.opacity = "1.0";
+    }
+  }
+
+  updateBallSpeedButtons() {
+    const slowButton = this.findElement("ball-speed-slow-button");
+    const normalButton = this.findElement("ball-speed-normal-button");
+    const fastButton = this.findElement("ball-speed-fast-button");
+
+    slowButton.style.opacity = "0.5";
+    normalButton.style.opacity = "0.5";
+    fastButton.style.opacity = "0.5";
+
+    if (this.state.ball_speed === "slow") {
+      slowButton.style.opacity = "1.0";
+    } else if (this.state.ball_speed === "normal") {
+      normalButton.style.opacity = "1.0";
+    } else if (this.state.ball_speed === "fast") {
+      fastButton.style.opacity = "1.0";
     }
   }
 
@@ -83,13 +141,43 @@ export class LocalGameOptions extends Component {
       .then((response) => response.json())
       .then((data) => {
         if (data.message === "Game created successfully") {
-          this.createPlayers(data.id, nicknames);
+          this.createGameOptions(data.id, () => {
+            this.createPlayers(data.id, nicknames);
+          });
         } else {
           console.error("Error creating game:", data.error);
         }
       })
       .catch((error) => {
         console.error("Error creating game:", error);
+      });
+  }
+
+  createGameOptions(gameId, callback) {
+    fetch("/pong/api/create-game-options/", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        game_id: gameId,
+        ball_count: this.state.ball_count,
+        ball_speed: this.state.ball_speed,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === "Game options saved successfully") {
+          console.log("Game options saved:", data);
+          callback();
+        } else {
+          console.error("Error saving game options:", data.error);
+        }
+      })
+      .catch((error) => {
+        console.error("Error saving game options:", error);
+        callback();
       });
   }
 
@@ -138,6 +226,20 @@ export class LocalGameOptions extends Component {
         <button id="players-2-button" style="opacity: 1.0;">2 Players</button>
         <button id="players-4-button" style="opacity: 0.5;">4 Players</button>
       </div>
+      
+      <div>
+        <label>Ball Count:</label>
+        <button id="ball-count-1-button" style="opacity: 1.0;">1 Ball</button>
+        <button id="ball-count-2-button" style="opacity: 0.5;">2 Balls</button>
+      </div>
+      
+      <div>
+        <label>Ball Speed:</label>
+        <button id="ball-speed-slow-button" style="opacity: 0.5;">Slow</button>
+        <button id="ball-speed-normal-button" style="opacity: 1.0;">Normal</button>
+        <button id="ball-speed-fast-button" style="opacity: 0.5;">Fast</button>
+      </div>
+      
       <div id="nicknames-container"></div>
       <button id="start-game-button">Start Game</button>
     `;

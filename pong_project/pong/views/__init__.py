@@ -7,3 +7,4 @@ from .player_view import create_player, get_players, update_player_score, get_re
 from .friend_view import user_list_api, friend_list_api, accept_friend_api, add_friend_api, reject_friend_api
 from .auth_view import setup_2fa_api, verify_2fa_api, disable_2fa_api, confirm_2fa_api
 from .oauth_view import oauth_42_callback
+from .game_options_view import create_game_options, get_game_options

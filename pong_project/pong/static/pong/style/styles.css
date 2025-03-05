@@ -1,51 +1,333 @@
+/* シンプルなネオンレトロアーケード風スタイル */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+:root {
+  --neon-coral: #ff5e7a; /* 赤オレンジとピンクの中間色に調整 */
+  --neon-blue: #00ffff;
+  --neon-purple: #9d5cff;
+  --neon-yellow: #ffff00;
+  --neon-green: #00ff00;
+  --dark-bg: #0a0a16;
+}
+
+html,
 body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  height: 100%;
   margin: 0;
+  padding: 0;
 }
 
-h1 {
-  color: #333;
-}
-
-p {
-  color: #666;
-}
-
-button {
-  background-color: #6c757d; /* グレーの背景 */
-  color: white; /* 白色の文字 */
-  padding: 10px 20px; /* パディング */
-  border: none; /* ボーダーなし */
-  border-radius: 5px; /* 角を丸く */
-  cursor: pointer; /* カーソルをポインターに */
-  font-size: 16px; /* フォントサイズ */
-  transition: background-color 0.3s; /* 背景色のトランジション */
-}
-
-button:hover {
-  background-color: #5a6268; /* ホバー時の背景色 */
-}
-
-form {
+body {
+  background-color: var(--dark-bg);
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBkPSJNMCAwIGg0MCB2NDAgaC00MCB2LTQweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjIyIiBzdHJva2Utd2lkdGg9IjEiIG9wYWNpdHk9IjAuMyIvPjwvc3ZnPg==");
+  font-family: "Press Start 2P", cursive;
+  color: white;
+  line-height: 1.6;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center; /* 垂直中央揃え */
+  justify-content: center; /* 水平中央揃え */
 }
 
-input[type="text"],
-input[type="password"] {
-  padding: 8px;
-  margin: 5px 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+#app {
   width: 100%;
-  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
 }
 
-label {
-  margin-top: 10px;
-  font-weight: bold;
+.retro-container {
+  max-width: 1000px;
+  padding: 20px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 控えめなネオンテキスト効果 */
+.neon-text {
+  color: white;
+  text-shadow: 0 0 2px #fff, 0 0 5px var(--neon-coral),
+    0 0 10px var(--neon-coral);
+}
+
+.neon-text-blue {
+  color: white;
+  text-shadow: 0 0 2px #fff, 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+}
+
+.game-title {
+  color: var(--neon-coral);
+  font-size: 2.5rem;
+  letter-spacing: 4px;
+  margin-bottom: 1.5rem;
+}
+
+/* シンプルなアーケードマシン風のエリア */
+.arcade-machine {
+  max-width: 700px;
+  margin: 0 auto;
+  position: relative;
+  border: 2px solid var(--neon-coral);
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(255, 94, 122, 0.4);
+  background-color: rgba(10, 10, 22, 0.9);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.game-area {
+  border: 2px solid var(--neon-blue);
+  background-color: rgba(0, 0, 0, 0.8);
+  min-height: 380px;
+  position: relative;
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  border-radius: 5px;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+}
+
+/* シンプルなネオンボタン - 統一バージョン */
+.neon-btn,
+.game-button {
+  background-color: rgba(10, 10, 22, 0.9);
+  color: white;
+  border: 2px solid var(--neon-coral);
+  padding: 0.8rem 1.5rem;
+  font-family: "Press Start 2P", cursive;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin: 0.5rem;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(255, 94, 122, 0.4);
+}
+
+/* シンプルなホバー効果 - 色のみ変化 */
+.neon-btn:hover,
+.game-button:hover {
+  background-color: var(--neon-coral);
+  color: black;
+}
+
+/* 青いバージョン */
+.neon-btn.btn-blue,
+.game-button.blue {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+}
+
+.neon-btn.btn-blue:hover,
+.game-button.blue:hover {
+  background-color: var(--neon-blue);
+  color: black;
+}
+
+/* 小さいボタン */
+.neon-btn.btn-sm,
+.game-button.sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.7rem;
+}
+
+/* 特定のコンテナ要素が変形しないよう固定 */
+.user-profile,
+.game-menu,
+.game-history-container {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* 控えめなアニメーション効果 */
+@keyframes subtle-neon-flicker {
+  0%,
+  18%,
+  22%,
+  25%,
+  53%,
+  57%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  24%,
+  55% {
+    opacity: 0.85;
+  }
+}
+
+.flicker-text {
+  animation: subtle-neon-flicker 5s infinite alternate;
+}
+
+/* ボタンコンテナ */
+.button-container {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* デコレーション要素 */
+.arcade-joystick {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--neon-yellow);
+  margin: 0 5px;
+  box-shadow: 0 0 5px rgba(255, 255, 0, 0.4);
+}
+
+.arcade-button {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin: 0 5px;
+}
+
+.button-red {
+  background-color: #ff0000;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.4);
+}
+
+.button-blue {
+  background-color: var(--neon-blue);
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.4);
+}
+
+.button-green {
+  background-color: var(--neon-green);
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.4);
+}
+
+/* レトロ入力フィールド */
+.retro-input {
+  background-color: #000 !important;
+  border: 2px solid var(--neon-blue);
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  color: white !important;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.7rem;
+  box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+  border-radius: 3px;
+  width: 80%;
+  max-width: 300px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.retro-input:focus {
+  outline: none;
+  border-color: var(--neon-coral);
+  box-shadow: 0 0 8px rgba(255, 94, 122, 0.5);
+}
+
+.retro-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* フォームグループのスタイル */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* OAuth ボタンエリア */
+.oauth-options {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ファイルアップロードフィールドのスタイル */
+input[type="file"].retro-input {
+  padding: 0.5rem;
+  font-size: 0.6rem;
+  cursor: pointer;
+}
+
+input[type="file"].retro-input::-webkit-file-upload-button {
+  background: var(--neon-blue);
+  color: black;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 3px;
+  font-family: "Press Start 2P", cursive;
+  font-size: 0.6rem;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: all 0.3s;
+}
+
+input[type="file"].retro-input::-webkit-file-upload-button:hover {
+  background: var(--neon-coral);
+  transform: translateY(-2px);
+}
+
+/* ホームページのスタイル */
+.user-profile {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--neon-coral);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(255, 94, 122, 0.4);
+}
+
+.player-profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--neon-coral);
+  box-shadow: 0 0 15px rgba(255, 94, 122, 0.6);
+}
+
+.game-menu,
+.game-history-container {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid var(--neon-blue);
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.neon-btn.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+}
+
+.avatar-container {
+  display: inline-block;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.game-history-list {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.game-history-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.game-history-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.game-history-list::-webkit-scrollbar-thumb {
+  background: var(--neon-blue);
+  border-radius: 10px;
+}
+
+.gap-3 {
+  gap: 1rem;
+}
+
+/* 特定のコンテナの中でtransform効果を独立させる */
+.arcade-machine,
+.game-area {
+  transform-style: flat;
+  backface-visibility: hidden;
+  will-change: transform;
 }

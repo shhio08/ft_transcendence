@@ -66,6 +66,10 @@ export class LocalGameOptions extends Component {
       this.updateBallSpeedButtons();
     };
 
+    this.findElement("home-button").onclick = () => {
+      this.goNextPage("/home");
+    };
+
     this.findElement("start-game-button").onclick = () => {
       if (this.state.gameType === "tournament") {
         this.createTournament();
@@ -177,15 +181,76 @@ export class LocalGameOptions extends Component {
   renderNicknames() {
     const nicknamesContainer = this.findElement("nicknames-container");
     nicknamesContainer.innerHTML = "";
-    for (let i = 0; i < this.state.players; i++) {
-      nicknamesContainer.innerHTML += `
-        <div>
-          <label>Player ${i + 1} Nickname:</label>
-          <input type="text" value="${
-            this.state.nicknames[i]
-          }" id="nickname-${i}">
-        </div>
-      `;
+
+    // 現在のプレイヤー数
+    const playerCount = this.state.players;
+
+    if (playerCount === 2) {
+      // 2人の場合は1行に2つ
+      const row = document.createElement("div");
+      row.className = "row nickname-row";
+
+      for (let i = 0; i < 2; i++) {
+        const col = document.createElement("div");
+        col.className = "col-6 mb-2";
+
+        col.innerHTML = `
+          <div class="input-group input-group-sm">
+            <span class="input-group-text">P${i + 1}</span>
+            <input type="text" class="form-control neon-input" 
+                  value="${this.state.nicknames[i]}" 
+                  id="nickname-${i}">
+          </div>
+        `;
+
+        row.appendChild(col);
+      }
+
+      nicknamesContainer.appendChild(row);
+    } else {
+      // 4人の場合は2行×2列
+      const row1 = document.createElement("div");
+      row1.className = "row nickname-row mb-2";
+
+      const row2 = document.createElement("div");
+      row2.className = "row nickname-row";
+
+      // 上の行: プレイヤー1と2
+      for (let i = 0; i < 2; i++) {
+        const col = document.createElement("div");
+        col.className = "col-6";
+
+        col.innerHTML = `
+          <div class="input-group input-group-sm">
+            <span class="input-group-text">P${i + 1}</span>
+            <input type="text" class="form-control neon-input" 
+                  value="${this.state.nicknames[i]}" 
+                  id="nickname-${i}">
+          </div>
+        `;
+
+        row1.appendChild(col);
+      }
+
+      // 下の行: プレイヤー3と4
+      for (let i = 2; i < 4; i++) {
+        const col = document.createElement("div");
+        col.className = "col-6";
+
+        col.innerHTML = `
+          <div class="input-group input-group-sm">
+            <span class="input-group-text">P${i + 1}</span>
+            <input type="text" class="form-control neon-input" 
+                  value="${this.state.nicknames[i]}" 
+                  id="nickname-${i}">
+          </div>
+        `;
+
+        row2.appendChild(col);
+      }
+
+      nicknamesContainer.appendChild(row1);
+      nicknamesContainer.appendChild(row2);
     }
   }
 
@@ -377,44 +442,69 @@ export class LocalGameOptions extends Component {
 
   get html() {
     return `
-      <h1>Local Game Options</h1>
-      <div>
-        <label>Game Type:</label>
-        <select id="game-type-select">
-          <option value="match">通常対戦</option>
-          <option value="tournament">トーナメント</option>
-        </select>
-      </div>
-      
-      <div id="tournament-info" style="display: none;">
-        <p class="info-text">トーナメントモードでは4人プレイヤーが必要です。</p>
-        <div>
-          <label>Tournament Name:</label>
-          <input type="text" id="tournament-name" placeholder="My Tournament">
+      <div class="container py-3">
+        <div class="row justify-content-center">
+          <div class="col-md-7 text-center">
+            <h3 class="neon-text mb-4">GAME OPTIONS</h3>
+            
+            <!-- ゲームタイプ - 幅を広げました -->
+            <div class="option-section">
+              <label class="neon-text-blue small mb-1">Game Type</label>
+              <select id="game-type-select" class="form-select form-select-sm neon-select game-type-dropdown">
+                <option value="match">Normal Match</option>
+                <option value="tournament">Tournament</option>
+              </select>
+            </div>
+            
+            <!-- トーナメント情報 -->
+            <div id="tournament-info" class="option-section" style="display: none;">
+              <label class="neon-text-blue small mb-1">Tournament Name</label>
+              <input type="text" id="tournament-name" class="form-control form-control-sm neon-input" placeholder="Tournament Name">
+              <small class="tournament-info-text">Tournament requires 4 players</small>
+            </div>
+            
+            <!-- プレイヤー数 -->
+            <div class="option-section">
+              <label class="neon-text-blue small mb-1">Players</label>
+              <div class="d-flex gap-2 justify-content-center">
+                <button id="players-2-button" class="neon-btn option-btn flex-grow-1" style="opacity: 1.0;">2 Players</button>
+                <button id="players-4-button" class="neon-btn option-btn flex-grow-1" style="opacity: 0.5;">4 Players</button>
+              </div>
+            </div>
+            
+            <!-- ボール数 -->
+            <div class="option-section">
+              <label class="neon-text-blue small mb-1">Ball Count</label>
+              <div class="d-flex gap-2 justify-content-center">
+                <button id="ball-count-1-button" class="neon-btn option-btn flex-grow-1" style="opacity: 1.0;">1 Ball</button>
+                <button id="ball-count-2-button" class="neon-btn option-btn flex-grow-1" style="opacity: 0.5;">2 Balls</button>
+              </div>
+            </div>
+            
+            <!-- ボール速度 -->
+            <div class="option-section">
+              <label class="neon-text-blue small mb-1">Ball Speed</label>
+              <div class="d-flex gap-2 justify-content-center">
+                <button id="ball-speed-slow-button" class="neon-btn option-btn flex-grow-1" style="opacity: 0.5;">Slow</button>
+                <button id="ball-speed-normal-button" class="neon-btn option-btn flex-grow-1" style="opacity: 1.0;">Normal</button>
+                <button id="ball-speed-fast-button" class="neon-btn option-btn flex-grow-1" style="opacity: 0.5;">Fast</button>
+              </div>
+            </div>
+            
+            <!-- プレイヤー名 -->
+            <div class="option-section mb-4">
+              <label class="neon-text-blue small mb-1">Player Names</label>
+              <div id="nicknames-container"></div>
+            </div>
+            
+            <!-- ボタンエリア -->
+            <div class="d-flex justify-content-center gap-3 mt-4">
+              <button id="home-button" class="neon-btn action-btn">HOME</button>
+              <button id="start-game-button" class="neon-btn action-btn start-btn">START</button>
+            </div>
+          </div>
         </div>
       </div>
-      
-      <div>
-        <label>Number of Players:</label>
-        <button id="players-2-button" style="opacity: 1.0;">2 Players</button>
-        <button id="players-4-button" style="opacity: 0.5;">4 Players</button>
-      </div>
-      
-      <div>
-        <label>Ball Count:</label>
-        <button id="ball-count-1-button" style="opacity: 1.0;">1 Ball</button>
-        <button id="ball-count-2-button" style="opacity: 0.5;">2 Balls</button>
-      </div>
-      
-      <div>
-        <label>Ball Speed:</label>
-        <button id="ball-speed-slow-button" style="opacity: 0.5;">Slow</button>
-        <button id="ball-speed-normal-button" style="opacity: 1.0;">Normal</button>
-        <button id="ball-speed-fast-button" style="opacity: 0.5;">Fast</button>
-      </div>
-      
-      <div id="nicknames-container"></div>
-      <button id="start-game-button">Start Game</button>
     `;
   }
 }

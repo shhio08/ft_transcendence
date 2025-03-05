@@ -189,7 +189,7 @@ export class Tournament extends Component {
   // 試合の結果を表示するためのヘルパー関数
   getMatchResultDisplay(match) {
     if (!match.players || match.players.length === 0) {
-      return `<div class="match-status">試合はまだ行われていません</div>`;
+      return `<div class="match-status">MATCH NOT STARTED YET</div>`;
     }
 
     // プレイヤーが登録されている場合
@@ -197,19 +197,23 @@ export class Tournament extends Component {
     const player2 = match.players.find((p) => p.player_number === 2);
 
     if (!player1 || !player2) {
-      return `<div class="match-status">プレイヤー情報が不完全です</div>`;
+      return `<div class="match-status">INCOMPLETE PLAYER DATA</div>`;
     }
 
     // スコアが0-0の場合は試合が終わっていない
     if (player1.score === 0 && player2.score === 0) {
       return `
         <div class="match-players">
-          <div class="player">${player1.nickname}</div>
+          <div class="player-wrapper">
+            <div class="player">${player1.nickname}</div>
+          </div>
           <div class="vs">VS</div>
-          <div class="player">${player2.nickname}</div>
+          <div class="player-wrapper">
+            <div class="player">${player2.nickname}</div>
+          </div>
         </div>
         <button class="start-match-button" data-game-id="${match.game_id}">
-          試合開始
+          START MATCH
         </button>
       `;
     }
@@ -220,15 +224,25 @@ export class Tournament extends Component {
     return `
       <div class="match-result">
         <div class="match-players">
-          <div class="player ${
-            player1.score > player2.score ? "winner" : ""
-          }">${player1.nickname}: ${player1.score}</div>
+          <div class="player-wrapper">
+            <div class="player ${
+              player1.score > player2.score ? "winner" : ""
+            }">${player1.nickname}</div>
+            <div class="player-score ${
+              player1.score > player2.score ? "winner" : ""
+            }">${player1.score}</div>
+          </div>
           <div class="vs">VS</div>
-          <div class="player ${
-            player2.score > player1.score ? "winner" : ""
-          }">${player2.nickname}: ${player2.score}</div>
+          <div class="player-wrapper">
+            <div class="player ${
+              player2.score > player1.score ? "winner" : ""
+            }">${player2.nickname}</div>
+            <div class="player-score ${
+              player2.score > player1.score ? "winner" : ""
+            }">${player2.score}</div>
+          </div>
         </div>
-        <div class="winner-announcement">${winner.nickname} の勝利!</div>
+        <div class="winner-announcement">${winner.nickname} WINS!</div>
       </div>
     `;
   }
@@ -245,7 +259,7 @@ export class Tournament extends Component {
   // トーナメントのブラケットを生成するヘルパー関数
   generateTournamentBracket() {
     if (!this.matches || this.matches.length === 0) {
-      return `<div class="empty-bracket">試合情報がありません</div>`;
+      return `<div class="empty-bracket">NO MATCHES AVAILABLE</div>`;
     }
 
     // 準決勝の試合を取得
@@ -256,30 +270,30 @@ export class Tournament extends Component {
     const finalMatch = this.matches.find((m) => m.round === "final");
 
     if (semifinalMatches.length < 2 || !finalMatch) {
-      return `<div class="empty-bracket">トーナメント構成が不完全です</div>`;
+      return `<div class="empty-bracket">INCOMPLETE TOURNAMENT STRUCTURE</div>`;
     }
 
     return `
       <div class="tournament-bracket">
         <div class="round semifinal">
-          <h3>準決勝</h3>
+          <h3>SEMIFINALS</h3>
           <div class="matches">
             <div class="match" id="semifinal-1">
-              <h4>準決勝 1</h4>
+              <h4>SEMIFINAL 1</h4>
               ${this.getMatchResultDisplay(semifinalMatches[0])}
             </div>
             <div class="match" id="semifinal-2">
-              <h4>準決勝 2</h4>
+              <h4>SEMIFINAL 2</h4>
               ${this.getMatchResultDisplay(semifinalMatches[1])}
             </div>
           </div>
         </div>
         
         <div class="round final">
-          <h3>決勝</h3>
+          <h3>FINAL</h3>
           <div class="matches">
             <div class="match" id="final">
-              <h4>決勝戦</h4>
+              <h4>FINAL MATCH</h4>
               ${this.getMatchResultDisplay(finalMatch)}
             </div>
           </div>
@@ -296,105 +310,217 @@ export class Tournament extends Component {
     const styleElement = document.createElement("style");
     styleElement.textContent = `
       .tournament-container {
-        padding: 20px;
-        max-width: 800px;
+        padding: 15px;
+        max-width: 900px;
         margin: 0 auto;
       }
       
       .tournament-header {
         text-align: center;
-        margin-bottom: 30px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid #00ffff;
+        border-radius: 6px;
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+        padding: 10px 15px;
+        margin-bottom: 20px;
+      }
+      
+      .tournament-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
       }
       
       .tournament-bracket {
         display: flex;
         flex-direction: column;
-        gap: 40px;
+        gap: 25px;
       }
       
       .round {
-        margin-bottom: 20px;
+        margin-bottom: 15px;
       }
       
       .round h3 {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+        color: #00FFFF;
+        text-shadow: 0 0 5px #00FFFF;
       }
       
       .matches {
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 15px;
       }
       
       .match {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 15px;
-        width: 300px;
-        background: #f9f9f9;
+        border: 1px solid #00ffff;
+        border-radius: 6px;
+        padding: 12px;
+        width: 400px;
+        background: rgba(0, 0, 0, 0.7);
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
       }
       
       .match h4 {
         text-align: center;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 5px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid #00FFFF;
+        padding-bottom: 4px;
+        font-size: 1rem;
+        color: #FFFFFF;
+        text-shadow: 0 0 2px #fff, 0 0 4px #00ffff;
       }
       
       .match-players {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        color: #FFFFFF;
+      }
+      
+      .player-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1;
       }
       
       .player {
         font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+      }
+      
+      .player-score {
+        margin-left: 8px;
+        font-weight: bold;
       }
       
       .winner {
-        color: green;
+        color: #00FFFF;
+        text-shadow: 0 0 3px #00FFFF;
       }
       
       .vs {
-        padding: 0 10px;
-        color: #666;
+        padding: 0 8px;
+        color: #FFFFFF;
+        flex-shrink: 0;
       }
       
       .winner-announcement {
         text-align: center;
         font-weight: bold;
-        color: green;
-        margin-top: 10px;
+        color: #00FFFF;
+        text-shadow: 0 0 3px #00FFFF;
+        margin-top: 8px;
+        font-size: 0.9rem;
       }
       
       .start-match-button {
         display: block;
         width: 100%;
-        padding: 8px;
-        background-color: #4CAF50;
+        padding: 6px;
+        background-color: rgba(10, 10, 22, 0.9);
         color: white;
-        border: none;
+        border: 1px solid #00ffff;
         border-radius: 4px;
         cursor: pointer;
-        margin-top: 10px;
+        margin-top: 8px;
+        font-family: "Press Start 2P", cursive;
+        letter-spacing: 1px;
+        box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+        text-transform: uppercase;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
       }
       
       .start-match-button:hover {
-        background-color: #45a049;
+        background-color: #00ffff;
+        color: black;
       }
       
       .loading-spinner {
         text-align: center;
-        padding: 20px;
+        padding: 15px;
+        color: #00FFFF;
+        text-shadow: 0 0 3px #00FFFF;
       }
       
       .error-message {
-        color: red;
+        color: #FF0000;
+        text-align: center;
+        padding: 15px;
+        text-shadow: 0 0 3px #FF0000;
+      }
+      
+      .empty-bracket {
         text-align: center;
         padding: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid #00ffff;
+        border-radius: 6px;
+        box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+        color: #00FFFF;
+        text-shadow: 0 0 3px #00FFFF;
+        font-size: 0.9rem;
+      }
+      
+      .actions {
+        text-align: center;
+        margin-top: 20px;
+      }
+      
+      .match-status {
+        color: #FFFFFF;
+        text-align: center;
+        padding: 8px;
+        font-size: 0.8rem;
+      }
+      
+      .tournament-info {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+      
+      .info-item {
+        color: #FFFFFF;
+      }
+      
+      .info-label {
+        color: #00FFFF;
+        margin-right: 3px;
+      }
+      
+      .neon-btn {
+        background-color: rgba(10, 10, 22, 0.9);
+        color: white;
+        border: 1px solid #00ffff;
+        border-radius: 4px;
+        cursor: pointer;
+        padding: 6px 12px;
+        font-family: "Press Start 2P", cursive;
+        letter-spacing: 1px;
+        box-shadow: 0 0 4px rgba(0, 255, 255, 0.3);
+        text-transform: uppercase;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 0.8rem;
+      }
+      
+      .neon-btn:hover {
+        background-color: #00ffff;
+        color: black;
       }
     `;
 
@@ -405,7 +531,7 @@ export class Tournament extends Component {
     if (this.loading) {
       return `
         <div class="loading-spinner">
-          <p>トーナメント情報を読み込み中...</p>
+          <p>LOADING TOURNAMENT DATA...</p>
         </div>
       `;
     }
@@ -413,8 +539,8 @@ export class Tournament extends Component {
     if (this.error) {
       return `
         <div class="error-message">
-          <p>エラー: ${this.error}</p>
-          <button onclick="window.location.reload()">再読み込み</button>
+          <p>ERROR: ${this.error}</p>
+          <button class="neon-btn" onclick="window.location.reload()">RELOAD</button>
         </div>
       `;
     }
@@ -422,8 +548,8 @@ export class Tournament extends Component {
     if (!this.tournament) {
       return `
         <div class="error-message">
-          <p>トーナメント情報が見つかりません</p>
-          <button onclick="window.location.href='/home'">ホームに戻る</button>
+          <p>TOURNAMENT NOT FOUND</p>
+          <button class="neon-btn" onclick="window.location.href='/home'">BACK TO HOME</button>
         </div>
       `;
     }
@@ -431,36 +557,46 @@ export class Tournament extends Component {
     return `
       <div class="tournament-container">
         <div class="tournament-header">
-          <h1>${this.tournament.name}</h1>
-          <p>ステータス: ${this.getTournamentStatus()}</p>
-          <p>作成者: ${this.tournament.created_by_username}</p>
-          <p>作成日: ${new Date(
-            this.tournament.created_at
-          ).toLocaleString()}</p>
+          <h1 class="neon-text">${this.tournament.name}</h1>
+          
+          <div class="tournament-info">
+            <span class="info-item">
+              <span class="info-label">STATUS:</span>
+              ${this.getTournamentStatus()}
+            </span>
+            <span class="info-item">
+              <span class="info-label">CREATED BY:</span>
+              ${this.tournament.created_by_username}
+            </span>
+            <span class="info-item">
+              <span class="info-label">DATE:</span>
+              ${new Date(this.tournament.created_at).toLocaleDateString()}
+            </span>
+          </div>
         </div>
         
         ${this.generateTournamentBracket()}
         
         <div class="actions">
-          <button onclick="window.location.href='/home'">ホームに戻る</button>
+          <button class="neon-btn" onclick="window.location.href='/home'">BACK TO HOME</button>
         </div>
       </div>
     `;
   }
 
   getTournamentStatus() {
-    if (!this.matches || this.matches.length === 0) return "準備中";
+    if (!this.matches || this.matches.length === 0) return "PREPARING";
 
     // 決勝戦の結果が入っているか確認
     const finalMatch = this.matches.find((m) => m.round === "final");
-    if (finalMatch && this.isMatchCompleted(finalMatch)) return "終了";
+    if (finalMatch && this.isMatchCompleted(finalMatch)) return "COMPLETED";
 
     // 少なくとも1つの試合が始まっているか確認
     const anyMatchStarted = this.matches.some(
       (m) => m.players && m.players.length > 0
     );
 
-    return anyMatchStarted ? "進行中" : "準備中";
+    return anyMatchStarted ? "IN PROGRESS" : "PREPARING";
   }
 
   // ページがアクティブになったときにデータを再読み込み

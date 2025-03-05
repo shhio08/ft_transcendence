@@ -29,8 +29,6 @@ export class Home extends Component {
       })
       .then((data) => {
         if (data.status === "success") {
-          // console.log("API response data:", data);
-          // console.log("API response avatar data:", data.user.avatar);
           this.state.username = data.user.username || "Guest";
           this.state.avatar =
             data.user.avatar || "/static/pong/images/avatar-default.jpg";
@@ -78,87 +76,15 @@ export class Home extends Component {
     const historyContainer = this.findElement("game-history");
 
     if (!this.state.gameHistory || this.state.gameHistory.length === 0) {
-      historyContainer.innerHTML = "<p>ゲーム履歴がありません</p>";
+      historyContainer.innerHTML = `<p class="text-center neon-text-blue">No game history</p>`;
       return;
     }
 
+    // 全ゲーム履歴データをコンソールに出力（デバッグ用）
+    console.log("全ゲーム履歴データ:", this.state.gameHistory);
+
     historyContainer.innerHTML = this.state.gameHistory
-      .map((game) => {
-        // トーナメント表示の場合
-        if (game.is_tournament) {
-          // 参加者一覧（優勝者を除く）
-          const participantsHtml =
-            game.participants && game.participants.length > 0
-              ? game.participants
-                  .filter(
-                    (p) => !game.winner_id || p.user_id !== game.winner_id
-                  ) // 優勝者を除外
-                  .map(
-                    (p) => `
-                  <div class="participant">
-                    <img src="${
-                      p.avatar || "/static/pong/images/avatar-default.jpg"
-                    }" 
-                         alt="Player" class="player-avatar small">
-                    <span class="participant-name ${
-                      p.is_user ? "is-user" : ""
-                    }">${p.nickname}</span>
-                  </div>
-                `
-                  )
-                  .join("")
-              : "";
-
-          return `
-            <div class="game-history-item tournament">
-              <div class="game-header">
-                <span class="game-mode">🏆 ${game.name || "トーナメント"}</span>
-                <span class="game-date">${new Date(
-                  game.played_at
-                ).toLocaleDateString()}</span>
-              </div>
-              
-              <div class="tournament-info">
-                ${
-                  game.winner_nickname
-                    ? `<div class="winner-info">
-                        <img src="${
-                          game.winner_avatar ||
-                          "/static/pong/images/avatar-default.jpg"
-                        }" 
-                             alt="Winner" class="player-avatar">
-                        <span class="winner-text">優勝: ${
-                          game.winner_nickname
-                        }</span>
-                        ${
-                          game.user_won
-                            ? '<span class="user-won">🏆</span>'
-                            : ""
-                        }
-                      </div>`
-                    : '<div class="no-winner">進行中</div>'
-                }
-                
-                ${
-                  game.participants && game.participants.length > 0
-                    ? `<div class="participants-list">
-                    <div class="participants-label">参加者:</div>
-                    <div class="participants-container">
-                      ${participantsHtml}
-                    </div>
-                  </div>`
-                    : ""
-                }
-              </div>
-            </div>
-          `;
-        }
-
-        // 通常ゲーム表示（既存コード）
-        const gameMode = game.mode || "local";
-        const playerCount = game.player_count || 2;
-        const isFourPlayerGame = playerCount >= 4;
-
+      .map((game, index) => {
         // 日付の処理
         let dateDisplay = "";
         if (game.played_at) {
@@ -172,189 +98,232 @@ export class Home extends Component {
           }
         }
 
-        // 通常ゲーム表示（既存コード）
-        return `
-          <div class="game-history-item">
-            <div class="game-header">
-              <span class="game-mode">${gameMode}${
-          isFourPlayerGame ? " (4P)" : " (2P)"
-        }</span>
-              <span class="game-date">${dateDisplay}</span>
-            </div>
-            
-            <div class="players-container">
-              <!-- 1行目のプレイヤー (常に表示) -->
-              <div class="player-row">
-                <div class="player">
-                  <img src="${
-                    game.user_avatar || "/static/pong/images/avatar-default.jpg"
-                  }" 
-                       alt="P1" class="player-avatar">
-                  <span class="player-info">${game.user_nickname}: ${
-          game.user_score
-        }</span>
+        // デバッグログ
+        console.log(`Game ${index} (ID: ${game.id}):`);
+        console.log("  Mode:", game.mode);
+        console.log("  Player Count:", game.player_count);
+        console.log("  User:", game.user_nickname, game.user_score);
+
+        // プレイヤー情報のデバッグ
+        for (let i = 1; i <= 4; i++) {
+          if (game[`player${i}_nickname`]) {
+            console.log(
+              `  Player ${i}:`,
+              game[`player${i}_nickname`],
+              game[`player${i}_score`],
+              game[`player${i}_id`]
+            );
+          }
+        }
+
+        // トーナメント表示の場合
+        if (game.is_tournament) {
+          // トーナメント名
+          let tournamentName = game.name || "Tournament";
+
+          // 参加者データの取得（シンプル化）
+          let participants = [];
+
+          // participant_nicknames配列を優先使用（バックエンドで追加したもの）
+          if (Array.isArray(game.participant_nicknames)) {
+            participants = [...game.participant_nicknames];
+            console.log("Using participant_nicknames:", participants);
+          }
+          // 次にparticipants配列を使用（オブジェクト配列の場合）
+          else if (
+            Array.isArray(game.participants) &&
+            game.participants.length > 0
+          ) {
+            participants = game.participants.map((p) => p.nickname);
+            console.log("Using participants array:", participants);
+          }
+
+          // 優勝者を参加者リストから除外
+          const displayParticipants = game.winner_nickname
+            ? participants.filter((name) => name !== game.winner_nickname)
+            : participants;
+
+          console.log("Final participants to display:", displayParticipants);
+
+          return `
+            <div class="game-history-item">
+              <div class="history-badge"></div>
+              <div class="history-main">
+                <div class="history-title">${tournamentName}
+                <span class="history-date">${dateDisplay}</span>
                 </div>
-                <span class="vs">vs</span>
-                <div class="player">
-                  <img src="${
-                    game.opponent_avatar ||
-                    "/static/pong/images/avatar-default.jpg"
-                  }" 
-                       alt="P2" class="player-avatar">
-                  <span class="player-info">${game.opponent}: ${
-          game.opponent_score
-        }</span>
+                <div class="history-result">
+                  ${
+                    game.winner_nickname
+                      ? `<div class="tournament-winner">
+                           <img src="${
+                             game.winner_avatar ||
+                             "/static/pong/images/avatar-default.jpg"
+                           }" 
+                                alt="Winner" class="avatar-mini"> 
+                           <span class="player-name">${
+                             game.winner_nickname
+                           }</span>
+                           <span class="trophy-icon">🏆</span>
+                         </div>`
+                      : "<span class='tournament-status'>IN PROGRESS</span>"
+                  }
+                  
+                  ${
+                    displayParticipants.length > 0
+                      ? `<div class="tournament-participants">
+                           <span class="participants-label">Players: </span>
+                           ${displayParticipants.join(", ")}
+                         </div>`
+                      : ""
+                  }
                 </div>
               </div>
-              
-              <!-- 2行目のプレイヤー (4人プレイの場合のみ) -->
-              ${
-                isFourPlayerGame
-                  ? `
-              <div class="player-row">
-                <div class="player">
-                  <img src="${
-                    game.player3_avatar ||
-                    "/static/pong/images/avatar-default.jpg"
-                  }" 
-                       alt="P3" class="player-avatar">
-                  <span class="player-info">${game.player3_nickname}: ${
-                      game.player3_score
-                    }</span>
-                </div>
-                <span class="vs">vs</span>
-                <div class="player">
-                  <img src="${
-                    game.player4_avatar ||
-                    "/static/pong/images/avatar-default.jpg"
-                  }" 
-                       alt="P4" class="player-avatar">
-                  <span class="player-info">${game.player4_nickname}: ${
-                      game.player4_score
-                    }</span>
+            </div>
+          `;
+        }
+
+        // 通常ゲーム表示
+        const gameMode = game.mode || "Local";
+        const playerCount = game.player_count || 2;
+        const isFourPlayerGame = playerCount >= 4;
+
+        // 4人プレイの場合
+        if (isFourPlayerGame) {
+          // 各プレイヤー情報を配列に格納
+          const players = [];
+
+          // 各プレイヤーの情報をプレイヤー番号順に格納
+          for (let i = 1; i <= 4; i++) {
+            let playerData = {
+              name: game[`player${i}_nickname`] || `Player ${i}`,
+              score: game[`player${i}_score`] || 0,
+              avatar:
+                game[`player${i}_avatar`] ||
+                "/static/pong/images/avatar-default.jpg",
+              id: game[`player${i}_id`] || null,
+              isUser: game[`player${i}_id`] === (game.user_id || null),
+            };
+
+            // ユーザー自身の場合はstate.avatarを使用
+            if (
+              i === game.user_player_number ||
+              game[`player${i}_id`] === game.user_id ||
+              game[`player${i}_nickname`] === game.user_nickname
+            ) {
+              playerData.avatar =
+                this.state.avatar || "/static/pong/images/avatar-default.jpg";
+              playerData.isUser = true;
+            }
+
+            players.push(playerData);
+          }
+
+          console.log("プレイヤー配列:", players);
+
+          return `
+            <div class="game-history-item four-player">
+              <div class="history-badge"></div>
+              <div class="history-main">
+                <div class="history-title">${gameMode} 4P <span class="history-date">${dateDisplay}</span></div>
+                <div class="match-wrapper">
+                  <!-- 第1試合：Player 1 vs Player 2 -->
+                  <div class="match-row">
+                    <div class="player-info">
+                      <img src="${
+                        players[0]?.avatar ||
+                        "/static/pong/images/avatar-default.jpg"
+                      }" alt="P1" class="avatar-mini">
+                      <span class="player-name">${
+                        players[0]?.name || "Player 1"
+                      }</span>
+                    </div>
+                    <div class="score-display">
+                      <span>${players[0]?.score || 0}</span>
+                      <span>&nbsp;-&nbsp;</span>
+                      <span>${players[1]?.score || 0}</span>
+                    </div>
+                    <div class="player-info">
+                      <img src="${
+                        players[1]?.avatar ||
+                        "/static/pong/images/avatar-default.jpg"
+                      }" alt="P2" class="avatar-mini">
+                      <span class="player-name">${
+                        players[1]?.name || "Player 2"
+                      }</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 第2試合：Player 3 vs Player 4 -->
+                  <div class="match-row">
+                    <div class="player-info">
+                      <img src="${
+                        players[2]?.avatar ||
+                        "/static/pong/images/avatar-default.jpg"
+                      }" alt="P3" class="avatar-mini">
+                      <span class="player-name">${
+                        players[2]?.name || "Player 3"
+                      }</span>
+                    </div>
+                    <div class="score-display">
+                      <span>${players[2]?.score || 0}</span>
+                      <span>&nbsp;-&nbsp;</span>
+                      <span>${players[3]?.score || 0}</span>
+                    </div>
+                    <div class="player-info">
+                      <img src="${
+                        players[3]?.avatar ||
+                        "/static/pong/images/avatar-default.jpg"
+                      }" alt="P4" class="avatar-mini">
+                      <span class="player-name">${
+                        players[3]?.name || "Player 4"
+                      }</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              `
-                  : ""
-              }
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          // 2人プレイの場合
+          return `
+            <div class="game-history-item">
+              <div class="history-badge"></div>
+              <div class="history-main">
+                <div class="history-title">${gameMode} 2P <span class="history-date">${dateDisplay}</span></div>
+                <div class="players-container">
+                  <div class="player-info">
+                    <img src="${
+                      this.state.avatar ||
+                      "/static/pong/images/avatar-default.jpg"
+                    }" 
+                         alt="You" class="avatar-mini">
+                    <span class="player-name">${
+                      game.user_nickname || "You"
+                    }</span>
+                  </div>
+                  <div class="score">
+                    ${game.user_score || 0} &nbsp;-&nbsp; ${
+            game.opponent_score || 0
+          }
+                  </div>
+                  <div class="player-info">
+                    <img src="${
+                      game.opponent_avatar ||
+                      "/static/pong/images/avatar-default.jpg"
+                    }" 
+                         alt="Opponent" class="avatar-mini">
+                    <span class="player-name">${
+                      game.opponent || "Opponent"
+                    }</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
       })
       .join("");
-
-    // スタイルを追加
-    const styleElement = document.createElement("style");
-    styleElement.textContent = `
-      .game-history-item {
-        margin-bottom: 10px;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        background-color: #ffffff;
-      }
-      .game-header {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 5px;
-      }
-      .game-mode {
-        font-weight: bold;
-      }
-      .players-container {
-        display: flex;
-        flex-direction: column;
-      }
-      .player-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .player {
-        display: flex;
-        align-items: center;
-        flex: 1;
-      }
-      .player-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        margin-right: 5px;
-      }
-      .player-info {
-        font-size: 0.9rem;
-      }
-      .vs {
-        font-weight: bold;
-        margin: 0 5px;
-        font-size: 0.8rem;
-        color: #888;
-      }
-      
-      /* トーナメント表示用のスタイル */
-      .game-history-item.tournament {
-        background-color: #f8f9ff;
-        border-left: 3px solid #4a6dd9;
-      }
-      .tournament-info {
-        padding: 5px 0;
-      }
-      .winner-info {
-        display: flex;
-        align-items: center;
-      }
-      .winner-text {
-        font-weight: bold;
-        margin-left: 10px;
-      }
-      .user-won {
-        color: gold;
-        font-size: 1.2rem;
-        margin-left: 10px;
-      }
-      .no-winner {
-        font-style: italic;
-        color: #888;
-      }
-      
-      /* 参加者一覧のスタイル */
-      .participants-list {
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px dashed #ddd;
-      }
-      .participants-label {
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 4px;
-      }
-      .participants-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .participant {
-        display: flex;
-        align-items: center;
-        background: #f0f0f0;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-      }
-      .player-avatar.small {
-        width: 20px;
-        height: 20px;
-        margin-right: 4px;
-      }
-      .participant-name.is-user {
-        font-weight: bold;
-        color: #4a6dd9;
-      }
-    `;
-    document.head.appendChild(styleElement);
   }
 
   attachEventListeners() {
@@ -409,15 +378,46 @@ export class Home extends Component {
 
   get html() {
     return `
-            <h1>Home</h1>
-            <p>Welcome, ${this.state.username}!</p>
-            <img src="${this.state.avatar}" alt="Avatar" style="width: 100px; height: 100px;">
-            <button id="logout-button">Logout</button>
-            <button id="local-game-button">Local Game</button>
-            <button id="online-game-button">Online Game</button>
-            <button id="edit-profile-button">Edit Profile</button>
-            <button id="friend-list-button">Friend List</button>
-            <div id="game-history"></div>
-        `;
+    <div class="container py-5 d-flex flex-column justify-content-center align-items-center">
+      <!-- 上部：プロフィールとゲーム履歴 -->
+      <div class="row w-100 mb-4">
+        <!-- 左側：プロフィール情報 -->
+        <div class="col-lg-4 mb-4 mb-lg-0 d-flex">
+          <div class="user-profile p-4 text-center w-100">
+            <div class="avatar-container mb-3">
+              <img src="${this.state.avatar}" alt="Avatar" class="player-profile-avatar">
+            </div>
+            <h2 class="neon-text mb-3">${this.state.username}</h2>
+            <div class="mt-3 d-flex flex-column gap-2">
+              <button id="edit-profile-button" class="neon-btn d-flex justify-content-center align-items-center">EDIT PROFILE</button>
+              <button id="friend-list-button" class="neon-btn d-flex justify-content-center align-items-center">FRIENDS</button>
+              <button id="logout-button" class="neon-btn d-flex justify-content-center align-items-center">LOGOUT</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右側：ゲーム履歴 -->
+        <div class="col-lg-8 d-flex">
+          <div class="game-history-container p-4 w-100" style="max-height: 497px; overflow-y: auto;">
+            <h3 class="neon-text-blue mb-3">GAME HISTORY</h3>
+            <div id="game-history" class="game-history-list"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 下部：ゲームメニュー -->
+      <div class="row w-100">
+        <div class="col-12">
+          <div class="game-menu p-4 text-center">
+            <h3 class="neon-text-blue mb-4">GAME MENU</h3>
+            <div class="d-flex justify-content-center align-items-center gap-4">
+              <button id="local-game-button" class="neon-btn btn-lg d-flex justify-content-center align-items-center">LOCAL GAME</button>
+              <button id="online-game-button" class="neon-btn btn-lg d-flex justify-content-center align-items-center">ONLINE GAME</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    `;
   }
 }

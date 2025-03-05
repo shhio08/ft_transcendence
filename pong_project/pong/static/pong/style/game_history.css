@@ -1,0 +1,220 @@
+/* ゲーム履歴のスタイル */
+.game-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.game-history-container {
+  max-height: 497px;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-history-item {
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  overflow: visible; /* 内容がはみ出ても表示 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px; /* マージンを少し増やして間隔を確保 */
+  min-height: min-content; /* 最小高さをコンテンツに合わせる */
+  width: 100%; /* 幅を100%に設定 */
+}
+
+.history-badge {
+  width: 6px;
+  background-color: rgba(0, 200, 255, 0.6);
+  flex-shrink: 0;
+  align-self: stretch; /* バッジを親要素の高さに合わせる */
+}
+
+.history-main {
+  flex: 1;
+  padding: 8px 10px; /* パディングを少し増やす */
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: min-content; /* コンテンツの最小高さに合わせる */
+  overflow: visible;
+  width: calc(100% - 6px); /* バッジ分の幅を引く */
+}
+
+.history-title {
+  font-size: 0.8rem;
+  color: rgba(0, 200, 255, 0.9);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.history-date {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+}
+
+.history-result {
+  padding: 2px 0;
+}
+
+.players-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.player-name {
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+}
+
+.score {
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+  min-width: 45px;
+  text-align: center;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.winner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.avatar-mini {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 4人プレイ用のスタイル */
+.four-player-container {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+}
+
+.player-column {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.four-player .player-name {
+  max-width: 110px;
+}
+
+/* 4人プレイのスコア表示 */
+.four-score-display {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 3px 5px;
+  border-radius: 4px;
+  width: auto;
+  min-width: 60px;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: white;
+  font-weight: bold;
+}
+
+.score-row span {
+  margin: 0 1px;
+}
+
+/* 4人プレイの新しいレイアウト */
+.match-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.score-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: white;
+  font-weight: bold;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* トーナメント表示のスタイル追加 */
+.tournament-winner {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.trophy-icon {
+  color: gold;
+  margin-left: 5px;
+}
+
+.tournament-participants {
+  margin-top: 5px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.participants-label {
+  font-weight: bold;
+  color: rgba(0, 200, 255, 0.8);
+}
+
+.participant-name {
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 2px;
+}
+
+.tournament-status {
+  color: rgba(255, 165, 0, 0.9);
+  font-style: italic;
+  font-size: 0.7rem;
+}

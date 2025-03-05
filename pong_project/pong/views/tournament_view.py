@@ -13,7 +13,7 @@ def create_tournament(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            name = data.get('name', f"Tournament {timezone.now().strftime('%Y-%m-%d %H:%M')}")
+            name = data.get('name', f"Tournament")
             
             # トーナメント作成
             tournament = Tournament.objects.create(

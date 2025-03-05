@@ -84,29 +84,86 @@ export class Result extends Component {
   // プレイヤースコアを表示するHTMLを生成
   generatePlayersScoresHtml() {
     if (!this.players || this.players.length === 0) {
-      return "<p>Loading player data...</p>";
+      return "<p class='neon-text-blue'>Loading player data...</p>";
     }
 
-    let html = '<div class="scores-container">';
+    // プレイヤー数に基づいてレイアウトを決定
+    const isFourPlayerGame = this.players.length >= 4;
 
-    this.players.forEach((player, index) => {
-      html += `<p>Player ${index + 1} (${player.nickname}): ${
-        player.score
-      }</p>`;
-    });
-
-    html += "</div>";
-    return html;
+    if (isFourPlayerGame) {
+      return `
+        <div class="match-wrapper mt-4">
+          <!-- 第1試合：Player 1 vs Player 2 -->
+          <div class="match-row mb-3">
+            <div class="player-info">
+              <span class="player-name neon-text-blue">${this.players[0].nickname}</span>
+            </div>
+            <div class="score-display" style="min-width: 100px; text-align: center;">
+              <span>${this.players[0].score}</span>
+              <span class="neon-text">&nbsp;-&nbsp;</span>
+              <span>${this.players[1].score}</span>
+            </div>
+            <div class="player-info">
+              <span class="player-name neon-text-blue">${this.players[1].nickname}</span>
+            </div>
+          </div>
+          
+          <!-- 第2試合：Player 3 vs Player 4 -->
+          <div class="match-row">
+            <div class="player-info">
+              <span class="player-name neon-text-blue">${this.players[2].nickname}</span>
+            </div>
+            <div class="score-display" style="min-width: 100px; text-align: center;">
+              <span>${this.players[2].score}</span>
+              <span class="neon-text">&nbsp;-&nbsp;</span>
+              <span>${this.players[3].score}</span>
+            </div>
+            <div class="player-info">
+              <span class="player-name neon-text-blue">${this.players[3].nickname}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      // 2人プレイの場合
+      return `
+        <div class="players-container d-flex justify-content-center align-items-center my-4">
+          <div class="player-info text-center">
+            <span class="player-name neon-text-blue">${this.players[0].nickname}</span>
+          </div>
+          <div class="score mx-4">
+            <span class="neon-text-lg">${this.players[0].score} &nbsp;-&nbsp; ${this.players[1].score}</span>
+          </div>
+          <div class="player-info text-center">
+            <span class="player-name neon-text-blue">${this.players[1].nickname}</span>
+          </div>
+        </div>
+      `;
+    }
   }
 
   get html() {
     return `
-      <h1>Match Result</h1>
-      <p>Game ID: ${this.gameId}</p>
-      <p>Final Scores:</p>
-      ${this.generatePlayersScoresHtml()}
-      <p>Congratulations to ${this.winner || "Loading..."} for winning!</p>
-      <button id="back-home-button">Return to Home</button>
+      <div class="container py-5">
+        <h1 class="neon-text text-center mb-4">MATCH RESULT</h1>
+        
+        <div class="result-container p-4 mb-4 text-center">
+          <h3 class="neon-text mb-4">FINAL SCORES</h3>
+          ${this.generatePlayersScoresHtml()}
+          
+          <div class="winner-display mt-4">
+            <h4 class="neon-text-lg mb-3">WINNER</h4>
+            <div class="winner-name neon-text-blue mb-3">${
+              this.winner || "Loading..."
+            }</div>
+            <div class="trophy-icon mb-3">🏆</div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-4">
+          <button id="back-home-button" class="neon-btn btn-lg">RETURN TO HOME</button>
+        </div>
+      </div>
     `;
   }
 

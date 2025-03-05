@@ -77,24 +77,93 @@ export class Home extends Component {
   renderGameHistory() {
     const historyContainer = this.findElement("game-history");
 
-    // デバッグ用：日付データの確認
-    console.log("Game history data sample:", this.state.gameHistory[0]);
+    if (!this.state.gameHistory || this.state.gameHistory.length === 0) {
+      historyContainer.innerHTML = "<p>ゲーム履歴がありません</p>";
+      return;
+    }
 
     historyContainer.innerHTML = this.state.gameHistory
       .map((game) => {
-        // ゲームモードを取得
-        const gameMode = game.mode || "local";
+        // トーナメント表示の場合
+        if (game.is_tournament) {
+          // 参加者一覧（優勝者を除く）
+          const participantsHtml =
+            game.participants && game.participants.length > 0
+              ? game.participants
+                  .filter(
+                    (p) => !game.winner_id || p.user_id !== game.winner_id
+                  ) // 優勝者を除外
+                  .map(
+                    (p) => `
+                  <div class="participant">
+                    <img src="${
+                      p.avatar || "/static/pong/images/avatar-default.jpg"
+                    }" 
+                         alt="Player" class="player-avatar small">
+                    <span class="participant-name ${
+                      p.is_user ? "is-user" : ""
+                    }">${p.nickname}</span>
+                  </div>
+                `
+                  )
+                  .join("")
+              : "";
 
-        // プレイヤー数を確認
+          return `
+            <div class="game-history-item tournament">
+              <div class="game-header">
+                <span class="game-mode">🏆 ${game.name || "トーナメント"}</span>
+                <span class="game-date">${new Date(
+                  game.played_at
+                ).toLocaleDateString()}</span>
+              </div>
+              
+              <div class="tournament-info">
+                ${
+                  game.winner_nickname
+                    ? `<div class="winner-info">
+                        <img src="${
+                          game.winner_avatar ||
+                          "/static/pong/images/avatar-default.jpg"
+                        }" 
+                             alt="Winner" class="player-avatar">
+                        <span class="winner-text">優勝: ${
+                          game.winner_nickname
+                        }</span>
+                        ${
+                          game.user_won
+                            ? '<span class="user-won">🏆</span>'
+                            : ""
+                        }
+                      </div>`
+                    : '<div class="no-winner">進行中</div>'
+                }
+                
+                ${
+                  game.participants && game.participants.length > 0
+                    ? `<div class="participants-list">
+                    <div class="participants-label">参加者:</div>
+                    <div class="participants-container">
+                      ${participantsHtml}
+                    </div>
+                  </div>`
+                    : ""
+                }
+              </div>
+            </div>
+          `;
+        }
+
+        // 通常ゲーム表示（既存コード）
+        const gameMode = game.mode || "local";
         const playerCount = game.player_count || 2;
         const isFourPlayerGame = playerCount >= 4;
 
-        // 日付の処理 - played_atがない場合は表示しない
+        // 日付の処理
         let dateDisplay = "";
         if (game.played_at) {
           try {
             const date = new Date(game.played_at);
-            // 有効な日付かチェック
             if (!isNaN(date)) {
               dateDisplay = date.toLocaleDateString();
             }
@@ -103,7 +172,7 @@ export class Home extends Component {
           }
         }
 
-        // コンパクトに表示するHTMLを生成
+        // 通常ゲーム表示（既存コード）
         return `
           <div class="game-history-item">
             <div class="game-header">
@@ -223,6 +292,66 @@ export class Home extends Component {
         margin: 0 5px;
         font-size: 0.8rem;
         color: #888;
+      }
+      
+      /* トーナメント表示用のスタイル */
+      .game-history-item.tournament {
+        background-color: #f8f9ff;
+        border-left: 3px solid #4a6dd9;
+      }
+      .tournament-info {
+        padding: 5px 0;
+      }
+      .winner-info {
+        display: flex;
+        align-items: center;
+      }
+      .winner-text {
+        font-weight: bold;
+        margin-left: 10px;
+      }
+      .user-won {
+        color: gold;
+        font-size: 1.2rem;
+        margin-left: 10px;
+      }
+      .no-winner {
+        font-style: italic;
+        color: #888;
+      }
+      
+      /* 参加者一覧のスタイル */
+      .participants-list {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px dashed #ddd;
+      }
+      .participants-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 4px;
+      }
+      .participants-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .participant {
+        display: flex;
+        align-items: center;
+        background: #f0f0f0;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+      }
+      .player-avatar.small {
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
+      }
+      .participant-name.is-user {
+        font-weight: bold;
+        color: #4a6dd9;
       }
     `;
     document.head.appendChild(styleElement);

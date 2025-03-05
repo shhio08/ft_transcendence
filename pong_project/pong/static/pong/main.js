@@ -10,6 +10,7 @@ import { LocalGameOptions } from "./components/local-game-options.js";
 import { FriendList } from "./components/friend_list.js";
 import { TwoFactorSettings } from "./components/two-factor-settings.js";
 import { OAuthCallback } from "./components/oauth-callback.js";
+import { Tournament } from "./components/tournament.js";
 
 let router = new Router(document.getElementById("app"), [
   {
@@ -65,6 +66,11 @@ let router = new Router(document.getElementById("app"), [
   {
     path: "/oauth/callback",
     component: OAuthCallback,
+    state: {},
+  },
+  {
+    path: "/tournament/:tournamentId",
+    component: Tournament,
     state: {},
   },
 ]);

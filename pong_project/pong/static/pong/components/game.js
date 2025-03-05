@@ -191,6 +191,14 @@ export class Game extends Component {
     const canvasContainer = document.createElement("div");
     canvasContainer.style.display = "flex";
     canvasContainer.style.justifyContent = "center";
+    canvasContainer.className = "canvas-container";
+    canvasContainer.style.padding = "4px";
+    canvasContainer.style.border = "2px solid #00ffff";
+    canvasContainer.style.boxShadow =
+      "0 0 10px #00ffff, inset 0 0 10px #00ffff";
+    canvasContainer.style.borderRadius = "4px";
+    canvasContainer.style.margin = "0 auto";
+
     const canvas = document.createElement("canvas");
     canvas.width = 800;
     canvas.height = 400;
@@ -566,22 +574,34 @@ export class Game extends Component {
 
   get html() {
     return `
-        <h1 style="text-align: center;">Pong Game</h1>
-        <div style="text-align: center;">
-            <span id="player1-score">Player 1: 0</span>
-            <span> | </span>
-            <span id="player2-score">Player 2: 0</span>
+      <div class="container py-4">
+        <h1 class="neon-text text-center mb-4">PONG GAME</h1>
+        
+        <!-- スコア表示 -->
+        <div class="game-menu p-3 mb-3">
+          <div class="text-center mb-2">
+            <span id="player1-score" class="neon-text-blue mx-2">Player 1: 0</span>
+            <span class="neon-text">|</span>
+            <span id="player2-score" class="neon-text-blue mx-2">Player 2: 0</span>
+          </div>
+          <div id="four-player-container" class="text-center mb-2" style="display: none;">
+            <span id="player3-score" class="neon-text-blue mx-2">Player 3: 0</span>
+            <span class="neon-text">|</span>
+            <span id="player4-score" class="neon-text-blue mx-2">Player 4: 0</span>
+          </div>
+          
+          <!-- 操作説明 -->
+          <div class="text-center mt-2">
+            <p class="mb-1">Player 1: W, S &nbsp;&nbsp; Player 2: ↑, ↓</p>
+            <p id="four-player-controls" class="mb-0" style="display: none;">Player 3: E, D &nbsp;&nbsp; Player 4: I, K</p>
+          </div>
         </div>
-        <div id="four-player-container" style="text-align: center; display: none;">
-            <span id="player3-score">Player 3: 0</span>
-            <span> | </span>
-            <span id="player4-score">Player 4: 0</span>
+        
+        <!-- ゲームエリア -->
+        <div class="game-area mb-3">
+          <div id="game-container" class="w-100 text-center"></div>
         </div>
-        <div style="text-align: center; margin-top: 10px;">
-            <p>Player 1: W, S &nbsp;&nbsp; Player 2: ↑, ↓</p>
-            <p id="four-player-controls" style="display: none;">Player 3: E, D &nbsp;&nbsp; Player 4: I, K</p>
-        </div>
-        <div id="game-container"></div>
+      </div>
     `;
   }
 

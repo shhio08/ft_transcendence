@@ -483,70 +483,76 @@ export class FriendList extends Component {
 
   get html() {
     return `
-      <div class="friend-container">
-        <h1>Friend Management</h1>
+      <div class="container py-5">
+        <h2 class="neon-text text-center mb-4">FRIEND MANAGEMENT</h2>
         
-        <ul class="tab-menu">
-          <li id="friend-tab" class="active">Friends</li>
-          <li id="request-tab">Friend Requests</li>
-          <li id="sent-tab">Sent Requests</li>
-          <li id="find-tab">Find Friends</li>
+        <ul class="tab-menu mb-4">
+          <li id="friend-tab" class="active">FRIENDS</li>
+          <li id="request-tab">REQUESTS</li>
+          <li id="sent-tab">SENT</li>
+          <li id="find-tab">FIND</li>
         </ul>
         
         <div class="tab-content">
           <div id="friend-list-section" class="tab-section">
-            <h2>Friends List</h2>
+            <h3 class="neon-text-blue mb-3">FRIENDS LIST</h3>
             <ul id="friend-list-content" class="card-list"></ul>
           </div>
           
           <div id="friend-request-section" class="tab-section" style="display: none;">
-            <h2>Friend Requests</h2>
+            <h3 class="neon-text-blue mb-3">FRIEND REQUESTS</h3>
             <ul id="friend-request-list" class="card-list"></ul>
           </div>
           
           <div id="sent-request-section" class="tab-section" style="display: none;">
-            <h2>Sent Friend Requests</h2>
+            <h3 class="neon-text-blue mb-3">SENT FRIEND REQUESTS</h3>
             <ul id="sent-request-list" class="card-list"></ul>
           </div>
           
           <div id="user-list-section" class="tab-section" style="display: none;">
-            <h2>Find New Friends</h2>
+            <h3 class="neon-text-blue mb-3">FIND NEW FRIENDS</h3>
             <ul id="user-list-content" class="card-list"></ul>
           </div>
         </div>
         
-        <button id="go-home" class="btn btn-home">Back to Home</button>
+        <div class="text-center mt-4">
+          <button id="go-home" class="neon-btn">BACK TO HOME</button>
+        </div>
         
         <style>
-          .friend-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          
           .tab-menu {
             display: flex;
             list-style-type: none;
             padding: 0;
             margin-bottom: 20px;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #00f3ff;
+            justify-content: center;
           }
           
           .tab-menu li {
             padding: 10px 20px;
             cursor: pointer;
             margin-right: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #00f3ff;
             border-bottom: none;
             border-radius: 5px 5px 0 0;
-            background-color: #f1f1f1;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-weight: bold;
+            transition: all 0.3s ease;
           }
           
           .tab-menu li.active {
-            background-color: white;
-            border-bottom: 1px solid white;
+            background-color: rgba(0, 243, 255, 0.1);
+            border-bottom: 1px solid #00f3ff;
             margin-bottom: -1px;
-            font-weight: bold;
+            color: #00f3ff;
+            text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff;
+          }
+          
+          .tab-menu li:hover:not(.active) {
+            background-color: rgba(0, 243, 255, 0.1);
+            color: #00f3ff;
           }
           
           .card-list {
@@ -559,11 +565,11 @@ export class FriendList extends Component {
             justify-content: space-between;
             align-items: center;
             padding: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid #00f3ff;
             margin-bottom: 10px;
             border-radius: 5px;
-            background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 5px #00f3ff;
           }
           
           .user-info {
@@ -577,11 +583,13 @@ export class FriendList extends Component {
             border-radius: 50%;
             margin-right: 15px;
             object-fit: cover;
+            border: 2px solid #00f3ff;
           }
           
           .username {
             font-weight: bold;
             font-size: 16px;
+            color: #fff;
           }
           
           .status {
@@ -596,6 +604,8 @@ export class FriendList extends Component {
           .status.online {
             background-color: #4CAF50;
             color: white;
+            text-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+            box-shadow: 0 0 5px #4CAF50;
           }
           
           .status.offline {
@@ -615,17 +625,20 @@ export class FriendList extends Component {
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
           }
           
           .btn-add {
             background-color: #4CAF50;
             color: white;
             margin-top: 5px;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
           }
           
           .btn-add:hover {
             background-color: #388E3C;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.9);
           }
           
           .btn-pending {
@@ -642,34 +655,30 @@ export class FriendList extends Component {
           .btn-accept {
             background-color: #2196F3;
             color: white;
+            border: 1px solid #2196F3;
+            box-shadow: 0 0 5px rgba(33, 150, 243, 0.7);
           }
           
           .btn-accept:hover {
             background-color: #1976D2;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.9);
           }
           
           .btn-reject {
             background-color: #F44336;
             color: white;
+            border: 1px solid #F44336;
+            box-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
           }
           
           .btn-reject:hover {
             background-color: #D32F2F;
-          }
-          
-          .btn-home {
-            background-color: #673AB7;
-            color: white;
-            margin-top: 20px;
-          }
-          
-          .btn-home:hover {
-            background-color: #512DA8;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.9);
           }
           
           .pending-status {
             font-style: italic;
-            color: #666;
+            color: #00f3ff;
             font-size: 12px;
             margin-top: 5px;
           }
@@ -678,6 +687,14 @@ export class FriendList extends Component {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
+          }
+          
+          .tab-section {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00f3ff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
           }
         </style>
       </div>

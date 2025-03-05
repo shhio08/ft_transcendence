@@ -81,26 +81,53 @@ export class EditProfile extends Component {
 
   get html() {
     return `
-            <h1>Edit Profile</h1>
-            <div>
-                <label for="username-input">Username:</label>
-                <input type="text" id="username-input" value="${
-                  this.state.username || ""
-                }">
-                <br>
-                <label for="avatar-input">Avatar:</label>
-                <input type="file" id="avatar-input">
-                <br>
-                ${
-                  this.state.avatar
-                    ? `<img src="${this.state.avatar}" alt="Current Avatar" width="100">`
-                    : ""
-                }
-                <br>
-                <button id="save-button">Save Changes</button>
-                <button id="cancel-button">Cancel</button>
-                <button id="setup-2fa-button">2要素認証の設定</button>
+      <div class="container py-5">
+        <h2 class="neon-text text-center mb-5">EDIT PROFILE</h2>
+        
+        <div class="row justify-content-center">
+          <!-- 左側：ユーザー情報 -->
+          <div class="col-md-6 mb-4 mb-md-0">
+            <!-- アバター表示 -->
+            <div class="text-center mb-4">
+              ${
+                this.state.avatar
+                  ? `<img src="${this.state.avatar}" alt="Current Avatar" class="player-profile-avatar mb-3">`
+                  : `<div class="player-profile-avatar mb-3 mx-auto"></div>`
+              }
             </div>
-        `;
+            
+            <!-- ユーザー名入力 -->
+            <div class="form-group mb-4">
+              <label for="username-input" class="neon-text-blue d-block mb-2">USERNAME</label>
+              <input type="text" id="username-input" class="form-control retro-input" 
+                value="${this.state.username || ""}">
+            </div>
+            
+            <!-- アバター更新 -->
+            <div class="form-group">
+              <label for="avatar-input" class="neon-text-blue d-block mb-2">CHANGE AVATAR</label>
+              <input type="file" id="avatar-input" class="form-control retro-input">
+            </div>
+          </div>
+          
+          <!-- 右側：アクションと設定 -->
+          <div class="col-md-4">
+            <!-- セキュリティオプション -->
+            <div class="mb-5">
+              <h4 class="neon-text-blue mb-3">SECURITY OPTIONS</h4>
+              <button id="setup-2fa-button" class="neon-btn btn-blue w-100">2FA SETUP</button>
+            </div>
+            
+            <!-- アクションボタン -->
+            <div class="mt-5 pt-3">
+              <div class="d-grid gap-3">
+                <button id="save-button" class="neon-btn w-100">SAVE</button>
+                <button id="cancel-button" class="neon-btn w-100">CANCEL</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 }

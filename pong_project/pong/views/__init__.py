@@ -8,3 +8,4 @@ from .friend_view import user_list_api, friend_list_api, accept_friend_api, add_
 from .auth_view import setup_2fa_api, verify_2fa_api, disable_2fa_api, confirm_2fa_api
 from .oauth_view import oauth_42_callback
 from .game_options_view import create_game_options, get_game_options
+from .tournament_view import create_tournament, get_tournament, setup_final_match

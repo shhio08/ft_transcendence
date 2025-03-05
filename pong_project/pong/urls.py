@@ -7,6 +7,7 @@ from .views import verify_2fa_api, setup_2fa_api, confirm_2fa_api, disable_2fa_a
 from .views import oauth_42_callback
 from .views import create_game_options, get_game_options
 from .views import pending_requests_api
+from .views import create_tournament, get_tournament, setup_final_match
 
 urlpatterns = [
     path('api/login/', login_api, name='login_api'),  # ログインAPIのパスを追加
@@ -37,4 +38,7 @@ urlpatterns = [
     path('api/create-game-options/', create_game_options, name='create_game_options'),
     path('api/get-game-options/', get_game_options, name='get_game_options'),
     path('api/pending-requests/', pending_requests_api, name='pending-requests'),
+    path('api/create-tournament/', create_tournament, name='create_tournament'),
+    path('api/get-tournament/', get_tournament, name='get_tournament'),
+    path('api/setup-final-match/', setup_final_match, name='setup_final_match'),
 ]

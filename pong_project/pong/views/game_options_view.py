@@ -20,10 +20,6 @@ def create_game_options(request):
             
             game = Game.objects.get(id=game_id)
             
-            # ゲームモードがlocalの場合のみオプション設定可能
-            if game.mode != 'local':
-                return JsonResponse({'error': 'Options can only be set for local games'}, status=400)
-            
             # 既存のオプションがあれば更新、なければ作成
             options, created = GameOptions.objects.update_or_create(
                 game=game,
@@ -32,19 +28,22 @@ def create_game_options(request):
                     'ball_speed': ball_speed
                 }
             )
-            
-            return JsonResponse({
-                'id': str(options.id),
-                'game_id': str(game.id),
-                'ball_count': options.ball_count,
-                'ball_speed': options.ball_speed,
-                'message': 'Game options saved successfully'
-            }, status=201 if created else 200)
+
+            return JsonResponse(
+                {
+                    "id": str(options.id),
+                    "game_id": str(game.id),
+                    "ball_count": options.ball_count,
+                    "ball_speed": options.ball_speed,
+                    "message": "Game options saved successfully",
+                },
+                status=201 if created else 200,
+            )
             
         except Game.DoesNotExist:
             return JsonResponse({'error': 'Game not found'}, status=404)
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            return JsonResponse({"error": str(e)}, status=400)
 
 @login_required
 def get_game_options(request):

@@ -48,19 +48,16 @@ export class Game extends Component {
   }
 
   stopGameLoop() {
-    console.log("Stopping game loop");
     this.isGameRunning = false;
 
     // アニメーションフレームをキャンセル
     if (this.animationFrameId) {
-      console.log("Cancelling animation frame:", this.animationFrameId);
       window.cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
 
     // もしsetIntervalを使っている場合（gameTimerId等の変数があれば）
     if (this.gameTimerId) {
-      console.log("Clearing game timer:", this.gameTimerId);
       clearInterval(this.gameTimerId);
       this.gameTimerId = null;
     }
@@ -92,12 +89,15 @@ export class Game extends Component {
         return response.json();
       })
       .then((data) => {
-        console.log("Game data:", data);
         if (data.error) {
-          console.error(data.error);
+          console.error("Game data error:", data.error);
           this.router.goNextPage("/home");
         } else {
           this.state = { ...this.state, ...data };
+          // トーナメントIDが存在する場合はログに出力（確認用）
+          if (data.tournament_id) {
+            console.log(`Game is part of tournament: ${data.tournament_id}`);
+          }
           this.initGame();
           this.loadPlayerData();
         }
@@ -480,10 +480,20 @@ export class Game extends Component {
         this.cleanupFunction();
       }
 
-      // 結果ページに遷移する前に少し待つ（スコア更新APIが完了する時間）
+      // トーナメントの一部かどうかを確認し、適切なページに遷移
       setTimeout(() => {
-        this.router.goNextPage(`/result/${this.gameId}`);
-      }, 1000); // 1秒待機に変更
+        // ゲームがトーナメントの一部の場合はトーナメントページに遷移
+        if (this.state.tournament_id) {
+          console.log(
+            `Game finished, returning to tournament: ${this.state.tournament_id}`
+          );
+          this.router.goNextPage(`/tournament/${this.state.tournament_id}`);
+        } else {
+          // 通常のゲームの場合はリザルトページに遷移
+          console.log(`Game finished, going to result page: ${this.gameId}`);
+          this.router.goNextPage(`/result/${this.gameId}`);
+        }
+      }, 1000); // 1秒待機
     }
   }
 
@@ -576,8 +586,6 @@ export class Game extends Component {
   }
 
   updatePlayerScore(playerId, score) {
-    console.log(`Updating score for player ${playerId} to ${score}`);
-
     fetch(
       `/pong/api/update-player-score/?player_id=${playerId}&score=${score}`,
       {
@@ -593,7 +601,6 @@ export class Game extends Component {
       })
       .then((data) => {
         if (data.success) {
-          console.log(`Score updated successfully for player ${playerId}`);
           // スコア更新が成功したらカスタムイベントを発行
           const scoreUpdatedEvent = new CustomEvent("scoreUpdated", {
             detail: { gameId: this.gameId },

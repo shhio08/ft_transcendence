@@ -335,8 +335,11 @@ export class Home extends Component {
       this.goNextPage("/local-game-options", stateToPass);
     };
     this.findElement("online-game-button").onclick = () => {
-      // TODO: オンラインゲームのボタンを実装
-      console.log("Online game button clicked");
+      const stateToPass = {
+        username: this.state.username,
+        avatar: this.state.avatar,
+      };
+      this.goNextPage("/online-matching", stateToPass);
     };
     this.findElement("edit-profile-button").onclick = () => {
       this.goNextPage("/edit-profile");

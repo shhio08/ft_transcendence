@@ -11,6 +11,8 @@ import { FriendList } from "./components/friend_list.js";
 import { TwoFactorSettings } from "./components/two-factor-settings.js";
 import { OAuthCallback } from "./components/oauth-callback.js";
 import { Tournament } from "./components/tournament.js";
+import { OnlineMatching } from "./components/online-matching.js";
+import { RemoteGame } from "./components/remote-game.js";
 
 let router = new Router(document.getElementById("app"), [
   {
@@ -71,6 +73,16 @@ let router = new Router(document.getElementById("app"), [
   {
     path: "/tournament/:tournamentId",
     component: Tournament,
+    state: {},
+  },
+  {
+    path: "/online-matching",
+    component: OnlineMatching,
+    state: {},
+  },
+  {
+    path: "/remote-game",
+    component: RemoteGame,
     state: {},
   },
 ]);

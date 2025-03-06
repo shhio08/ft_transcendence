@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'rest_framework_simplejwt',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -172,3 +173,11 @@ SIMPLE_JWT = {
 FORTY_TWO_CLIENT_ID = 'u-s4t2ud-46adc406116a39c11f807fb8e35377ae95308aed832f497a3a03f7c39513253f'
 FORTY_TWO_CLIENT_SECRET = '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'
 FORTY_TWO_REDIRECT_URI = 'http://localhost:8080/oauth/callback'  # 本番環境では適切なURIに変更
+
+# Channels設定
+ASGI_APPLICATION = 'pong_project.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}

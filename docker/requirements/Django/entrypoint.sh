@@ -31,8 +31,8 @@ python manage.py collectstatic --no-input --clear
 
 # サーバー起動
 if [ "$DEBUG" = "1" ]; then
-    exec python manage.py runserver 0.0.0.0:8000
+    exec daphne -b 0.0.0.0 -p 8000 pong_project.asgi:application
 else
-    exec gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+    exec daphne -b 0.0.0.0 -p 8000 pong_project.asgi:application
 fi
 

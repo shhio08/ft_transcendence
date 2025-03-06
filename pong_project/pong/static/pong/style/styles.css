@@ -43,7 +43,6 @@ body {
   width: 100%;
 }
 
-/* 控えめなネオンテキスト効果 */
 .neon-text {
   color: white;
   text-shadow: 0 0 2px #fff, 0 0 5px var(--neon-coral),
@@ -62,7 +61,6 @@ body {
   margin-bottom: 1.5rem;
 }
 
-/* シンプルなアーケードマシン風のエリア */
 .arcade-machine {
   max-width: 700px;
   margin: 0 auto;
@@ -89,7 +87,6 @@ body {
   padding: 30px 20px;
 }
 
-/* シンプルなネオンボタン - 統一バージョン */
 .neon-btn,
 .game-button {
   background-color: rgba(10, 10, 22, 0.9);

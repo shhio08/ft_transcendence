@@ -260,11 +260,11 @@ class GameConsumer(AsyncWebsocketConsumer):
         ball['z'] += ball['velocity']['z']
         
         # 左右の壁との衝突判定
-        if ball['x'] <= -10 or ball['x'] >= 10:
+        if ball['x'] <= -15 or ball['x'] >= 15:
             ball['velocity']['x'] *= -1
         
         # パドル1との衝突判定
-        if (ball['z'] >= 14 and ball['z'] <= 16 and 
+        if (ball['z'] >= 18 and ball['z'] <= 20 and 
             ball['x'] >= paddles[1]['x'] - 2.5 and 
             ball['x'] <= paddles[1]['x'] + 2.5):
             ball['velocity']['z'] *= -1
@@ -272,7 +272,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             ball['velocity']['x'] = (ball['x'] - paddles[1]['x']) / 5 + (random.random() * 0.1 - 0.05)
         
         # パドル2との衝突判定
-        if (ball['z'] <= -14 and ball['z'] >= -16 and 
+        if (ball['z'] <= -18 and ball['z'] >= -20 and 
             ball['x'] >= paddles[2]['x'] - 2.5 and 
             ball['x'] <= paddles[2]['x'] + 2.5):
             ball['velocity']['z'] *= -1
@@ -280,7 +280,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             ball['velocity']['x'] = (ball['x'] - paddles[2]['x']) / 5 + (random.random() * 0.1 - 0.05)
         
         # ゴール判定
-        if ball['z'] > 16:
+        if ball['z'] > 20:
             # プレイヤー2の得点
             game_state['score']['player2'] += 1
             print(f"⚽ Player 2 scored! Score: {game_state['score']['player1']}-{game_state['score']['player2']}")
@@ -291,7 +291,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             if not game_state['ended']:
                 self.reset_ball(game_room)
                 
-        elif ball['z'] < -16:
+        elif ball['z'] < -20:
             # プレイヤー1の得点
             game_state['score']['player1'] += 1
             print(f"⚽ Player 1 scored! Score: {game_state['score']['player1']}-{game_state['score']['player2']}")

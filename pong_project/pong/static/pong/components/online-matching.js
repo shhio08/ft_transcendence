@@ -88,6 +88,7 @@ export class OnlineMatching extends Component {
       <div id="searching-view" class="text-center">
         <div class="spinner-border text-info mb-4"></div>
         <p id="match-status" class="neon-text-blue mb-5">Looking for an opponent...</p>
+        <p class="text-warning mb-3">Please do not reload this page.</p>
         <button id="cancel-button" class="neon-btn btn-lg">CANCEL</button>
       </div>
       

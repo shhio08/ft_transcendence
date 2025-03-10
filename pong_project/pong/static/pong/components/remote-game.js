@@ -126,11 +126,11 @@ export class RemoteGame extends Component {
     this.socket = new WebSocket(wsUrl);
 
     this.socket.onopen = () => {
-      console.log("WebSocket connection established");
+      // WebSocket接続時の最低限のログ
+      console.log("WebSocket接続確立");
 
       // リロードが検出された場合、WebSocket接続後にゲーム中断メッセージを送信
       if (this.isReload) {
-        console.log("Sending game_interrupted message due to reload");
         this.socket.send(
           JSON.stringify({
             type: "game_interrupted",
@@ -156,19 +156,24 @@ export class RemoteGame extends Component {
           player_number: this.playerNumber,
         })
       );
-      console.log(
-        `Sent join_game message for room ${this.gameRoom} as player ${this.playerNumber}`
-      );
     };
 
     this.socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("Received message:", data);
+
+      // 重要なイベントのみログ出力（game_state_updateとpaddle_moveは出力しない）
+      if (
+        data.type === "game_message" &&
+        data.event !== "game_state_update" &&
+        data.event !== "paddle_move"
+      ) {
+        console.log(`受信: ${data.event}`);
+      }
 
       if (data.type === "game_message") {
         // ゲーム中断メッセージの処理を最優先
         if (data.event === "game_interrupted") {
-          console.log("Game interrupted! Reason:", data.reason);
+          console.log("ゲーム中断理由:", data.reason);
           this.gameEnded = true;
 
           // 確実に処理が実行されるように即時アラートを表示
@@ -185,7 +190,7 @@ export class RemoteGame extends Component {
 
         // その他のメッセージ処理
         if (data.event === "player_joined") {
-          console.log(`Player ${data.player_number} joined the game`);
+          console.log(`プレイヤー${data.player_number}がゲームに参加`);
         } else if (data.event === "paddle_move") {
           const playerNumber = data.player_number;
           const position = data.position;
@@ -201,22 +206,20 @@ export class RemoteGame extends Component {
         } else if (data.event === "game_state_update") {
           // サーバーからのゲーム状態更新を処理
           if (data.ball) {
-            console.log("Ball position updated:", data.ball);
             this.ball.position.x = data.ball.x;
             this.ball.position.y = data.ball.y;
             this.ball.position.z = data.ball.z;
           }
 
           if (data.score) {
-            console.log("Score updated:", data.score);
             this.score = data.score;
             this.updateScoreDisplay();
           }
         } else if (data.event === "game_start") {
-          console.log("Game started");
+          console.log("ゲーム開始");
           this.gameStarted = true;
         } else if (data.event === "game_end") {
-          console.log("Game ended, winner:", data.winner);
+          console.log("ゲーム終了, 勝者:", data.winner);
           if (!this.gameEnded) {
             this.gameEnded = true;
             this.handleGameEnd(data);
@@ -226,11 +229,11 @@ export class RemoteGame extends Component {
     };
 
     this.socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      console.error("WebSocket エラー");
     };
 
     this.socket.onclose = (event) => {
-      console.log("WebSocket connection closed:", event.code, event.reason);
+      console.log("WebSocket 接続終了");
     };
   }
 
@@ -268,17 +271,15 @@ export class RemoteGame extends Component {
     // パドル位置の更新
     this.updatePaddlePosition();
 
+    // ボール位置の更新を追加
+    // this.updateBallPosition();
+
     // レンダリング
     this.render();
   }
 
   updatePaddlePosition() {
-    // デバッグログを追加
-    console.log(
-      `updatePaddlePosition - Player: ${this.playerNumber}, Keys:`,
-      this.keys
-    );
-
+    // デバッグログを削除（アニメーションごとに出力されるのを防止）
     let moved = false;
     const myPaddle = this.myPaddle;
 
@@ -293,20 +294,17 @@ export class RemoteGame extends Component {
       rightKey = temp;
     }
 
-    // 実際の移動処理（両プレイヤー共通）
-    if (leftKey && myPaddle.position.x > -8) {
+    // パドルの移動範囲を拡大（テーブル端まで移動可能に）
+    if (leftKey && myPaddle.position.x > -13) {
       myPaddle.position.x -= this.paddleSpeed;
       moved = true;
     }
-    if (rightKey && myPaddle.position.x < 8) {
+    if (rightKey && myPaddle.position.x < 13) {
       myPaddle.position.x += this.paddleSpeed;
       moved = true;
     }
 
-    // デバッグログ
-    if (moved) {
-      console.log(`Paddle moved to: ${myPaddle.position.x}`);
-    }
+    // デバッグログを削除
 
     if (moved && this.socket && this.socket.readyState === WebSocket.OPEN) {
       const message = {
@@ -328,27 +326,24 @@ export class RemoteGame extends Component {
   setupScene() {
     // シーンの作成
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x000000);
+    this.scene.background = new THREE.Color(0x0a0a16); // ウェブページの背景と同じ色に変更
 
-    // カメラの設定
-    this.camera = new THREE.PerspectiveCamera(40, 800 / 500, 0.1, 1000);
+    // カメラの設定 - 視野角を広げて位置を調整
+    this.camera = new THREE.PerspectiveCamera(45, 800 / 500, 0.1, 1000);
 
-    console.log(`Setting up camera for player ${this.playerNumber}`);
+    console.log(`プレイヤー${this.playerNumber}のカメラをセットアップ`);
 
     if (this.playerNumber === 1) {
-      // プレイヤー1は手前側から見る
-      this.camera.position.set(0, 15, 32);
-      this.camera.lookAt(0, 0, 0); // シーンの中心を見る
+      // プレイヤー1は手前側から見る - より遠くから
+      this.camera.position.set(0, 16, 40);
+      this.camera.lookAt(0, -2, 0); // 視点を少し下げる
     } else {
-      // プレイヤー2は奥側から見る
-      this.camera.position.set(0, 15, -32);
-      this.camera.lookAt(0, 0, 0); // シーンの中心を見る
+      // プレイヤー2は奥側から見る - より遠くから
+      this.camera.position.set(0, 16, -40);
+      this.camera.lookAt(0, -2, 0); // 視点を少し下げる
       // Y軸の向きを反転させない (up vectorは通常通り)
       this.camera.up.set(0, 1, 0);
     }
-
-    console.log(`Camera position: ${JSON.stringify(this.camera.position)}`);
-    console.log(`Camera up vector: ${JSON.stringify(this.camera.up)}`);
 
     // レンダラーの設定
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -362,68 +357,148 @@ export class RemoteGame extends Component {
       console.error("Game container not found");
     }
 
-    // 光源の設定
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // 光源の設定（テーブルに青い光を当てないよう調整）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // 光量を減らす
     this.scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 0.8);
-    pointLight.position.set(0, 15, 0);
-    this.scene.add(pointLight);
+    // より集中したスポットライトを使う（テーブル照らしすぎない）
+    const spotLight = new THREE.SpotLight(0xffffff, 0.5);
+    spotLight.position.set(0, 30, 0);
+    spotLight.angle = Math.PI / 6; // 狭い角度
+    spotLight.penumbra = 0.2;
+    spotLight.distance = 80;
+    spotLight.castShadow = false; // 影を作らない
+    this.scene.add(spotLight);
   }
 
   createGameObjects() {
-    // パドル1（プレイヤー1のパドル - 常に手前側）
-    const paddle1Geometry = new THREE.BoxGeometry(4, 1, 1);
-    const paddle1Material = new THREE.MeshPhongMaterial({ color: 0x0000ff });
-    this.paddle1 = new THREE.Mesh(paddle1Geometry, paddle1Material);
-    this.paddle1.position.set(0, 0.5, 15);
-
-    // パドル2（プレイヤー2のパドル - 常に奥側）
-    const paddle2Geometry = new THREE.BoxGeometry(4, 1, 1);
-    const paddle2Material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-    this.paddle2 = new THREE.Mesh(paddle2Geometry, paddle2Material);
-    this.paddle2.position.set(0, 0.5, -15);
-
-    this.scene.add(this.paddle1);
-    this.scene.add(this.paddle2);
-
-    // 自分が操作するパドルを設定
-    this.myPaddle = this.playerNumber === 1 ? this.paddle1 : this.paddle2;
-
-    // ボール
-    const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const ballMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
-    this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
-    this.ball.position.set(0, 1, 0);
-    this.scene.add(this.ball);
-
-    // シンプルなゲームフィールド
+    this.createPaddles();
+    this.createBall();
     this.createGameField();
   }
 
-  createGameField() {
-    // シンプルな床
-    const floorGeometry = new THREE.PlaneGeometry(30, 40);
-    const floorMaterial = new THREE.MeshBasicMaterial({
-      color: 0x222222,
-      side: THREE.DoubleSide,
+  createPaddles() {
+    // パドルのジオメトリとマテリアル
+    const paddleGeometry = new THREE.BoxGeometry(4, 0.5, 1);
+
+    // 自分のパドル（ネオンレッド）- 発光効果を追加
+    const myPaddleMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff0066, // 基本色（ネオンピンク/赤）
+      emissive: 0xff0066, // 自己発光色
+      emissiveIntensity: 0.7, // 発光強度
+      shininess: 100, // 光沢
+      specular: 0xffffff, // ハイライト色
     });
+
+    // 相手のパドル（ネオンブルー）- 発光効果を追加
+    const oppPaddleMaterial = new THREE.MeshPhongMaterial({
+      color: 0x00ffff, // 基本色（ネオンシアン/青）
+      emissive: 0x00ffff, // 自己発光色
+      emissiveIntensity: 0.7, // 発光強度
+      shininess: 100, // 光沢
+      specular: 0xffffff, // ハイライト色
+    });
+
+    this.myPaddle = new THREE.Mesh(paddleGeometry, myPaddleMaterial);
+    this.oppPaddle = new THREE.Mesh(paddleGeometry, oppPaddleMaterial);
+
+    // パドルの初期位置設定 - テーブルの端に合わせる
+    if (this.playerNumber === 1) {
+      // プレイヤー1のパドルは手前側（正のZ方向）
+      this.myPaddle.position.set(0, 0, 19.5); // テーブルの端に合わせる
+      this.oppPaddle.position.set(0, 0, -19.5); // 反対側
+    } else {
+      // プレイヤー2のパドルは奥側（負のZ方向）
+      this.myPaddle.position.set(0, 0, -19.5); // テーブルの端に合わせる
+      this.oppPaddle.position.set(0, 0, 19.5); // 反対側
+    }
+
+    this.scene.add(this.myPaddle);
+    this.scene.add(this.oppPaddle);
+  }
+
+  createGameField() {
+    // テーブルを完全な真っ黒に変更（水色にならないよう材質を変更）
+    const floorGeometry = new THREE.PlaneGeometry(30, 40);
+
+    // 水色発光を防ぐため完全不透明な黒のマテリアルを使用
+    const floorMaterial = new THREE.MeshBasicMaterial({
+      color: 0x000000, // 純粋な黒
+      side: THREE.DoubleSide,
+      transparent: false,
+      reflectivity: 0, // 反射なし
+    });
+
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = Math.PI / 2; // 水平に回転
-    floor.position.y = 0;
+    floor.position.y = 0; // 位置調整
     this.scene.add(floor);
 
-    // 中央線（シンプルな線）
-    const centerLineGeometry = new THREE.PlaneGeometry(0.1, 30);
+    // ネオン管風の外枠（水色の光源として機能）
+    const edgeGeometry = new THREE.BoxGeometry(30, 0.5, 40);
+    const edgeMaterial = new THREE.MeshPhongMaterial({
+      color: 0x000000, // 黒ベース
+      emissive: 0x00ffff, // シアン発光
+      emissiveIntensity: 0.8, // 発光強度
+      transparent: true,
+      opacity: 0.9,
+    });
+
+    // フレーム作成（内側は黒く、エッジだけが光るようにする）
+    const edgeWireframe = new THREE.BoxHelper(
+      new THREE.Mesh(new THREE.BoxGeometry(30, 0.2, 40)),
+      0x00ffff
+    );
+    edgeWireframe.material.transparent = true;
+    edgeWireframe.material.opacity = 0.8;
+    edgeWireframe.material.linewidth = 2;
+    edgeWireframe.position.y = 0.1;
+    this.scene.add(edgeWireframe);
+
+    // 中央線（ネオン調の白）
+    const centerLineGeometry = new THREE.PlaneGeometry(0.2, 40);
     const centerLineMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.7,
     });
     const centerLine = new THREE.Mesh(centerLineGeometry, centerLineMaterial);
     centerLine.rotation.x = Math.PI / 2;
-    centerLine.position.y = 0.01;
+    centerLine.position.y = 0.05; // 床より少し上に
     this.scene.add(centerLine);
+
+    // デバッグ用：テーブルのサイズを表示（初期化時のみ）
+    // console.log(
+    //   "テーブルサイズ:",
+    //   floorGeometry.parameters.width,
+    //   "x",
+    //   floorGeometry.parameters.height
+    // );
+  }
+
+  createBall() {
+    // ボールのジオメトリとマテリアル - ネオン風に変更
+    const ballGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const ballMaterial = new THREE.MeshPhongMaterial({
+      color: 0xffff00, // 黄色
+      emissive: 0xffff00, // 自己発光色も黄色
+      emissiveIntensity: 0.7, // 発光強度
+      shininess: 100, // 光沢
+      specular: 0xffffff, // ハイライト
+    });
+    this.ball = new THREE.Mesh(ballGeometry, ballMaterial);
+
+    // ボールの初期位置
+    this.ball.position.set(0, 0.5, 0); // y座標を0.5に設定して床の上に配置
+
+    // シーンにボールを追加
+    this.scene.add(this.ball);
+
+    // ボールの速度と方向の初期設定
+    this.ballVelocity = {
+      x: (Math.random() - 0.5) * 0.4, // -0.2から0.2の間のランダムな値
+      z: this.playerNumber === 1 ? -0.3 : 0.3, // プレイヤー1は奥へ、プレイヤー2は手前へ
+    };
   }
 
   render() {
@@ -652,5 +727,59 @@ export class RemoteGame extends Component {
         }
       }
     });
+  }
+
+  updateBallPosition() {
+    // 前回のボール位置を保存
+    const oldPosition = { ...this.ball.position };
+
+    // ボールを移動
+    this.ball.position.x += this.ballVelocity.x;
+    this.ball.position.z += this.ballVelocity.z;
+
+    // テーブルの左右の壁との衝突判定
+    // テーブルの端（x = ±15）でボールが跳ね返るように変更
+    if (this.ball.position.x <= -15 || this.ball.position.x >= 15) {
+      this.ballVelocity.x = -this.ballVelocity.x;
+      // ボールがテーブルの外に出ないよう位置を調整
+      this.ball.position.x = this.ball.position.x > 0 ? 15 : -15;
+    }
+
+    // パドルとの衝突判定
+    // プレイヤー1のパドル（手前側）
+    const paddle1 = this.playerNumber === 1 ? this.myPaddle : this.oppPaddle;
+    // プレイヤー2のパドル（奥側）
+    const paddle2 = this.playerNumber === 1 ? this.oppPaddle : this.myPaddle;
+
+    // パドル1（手前側）との衝突判定
+    if (
+      this.ball.position.z >= 20 &&
+      oldPosition.z < 20 &&
+      this.ball.position.x >= paddle1.position.x - 1 &&
+      this.ball.position.x <= paddle1.position.x + 1
+    ) {
+      this.ballVelocity.z = -Math.abs(this.ballVelocity.z); // 必ず奥へ跳ね返る
+      this.ballVelocity.x += (this.ball.position.x - paddle1.position.x) * 0.1; // パドルの当たった位置に応じて角度が変わる
+      this.ball.position.z = 20; // パドルの手前に位置を修正
+    }
+
+    // パドル2（奥側）との衝突判定
+    if (
+      this.ball.position.z <= -20 &&
+      oldPosition.z > -20 &&
+      this.ball.position.x >= paddle2.position.x - 1 &&
+      this.ball.position.x <= paddle2.position.x + 1
+    ) {
+      this.ballVelocity.z = Math.abs(this.ballVelocity.z); // 必ず手前へ跳ね返る
+      this.ballVelocity.x += (this.ball.position.x - paddle2.position.x) * 0.1; // パドルの当たった位置に応じて角度が変わる
+      this.ball.position.z = -20; // パドルの手前に位置を修正
+    }
+
+    // ゴール判定（相手側の端を超えた場合）
+    if (this.ball.position.z < -20 || this.ball.position.z > 20) {
+      this.resetBall();
+      this.score += 1;
+      this.updateScoreDisplay();
+    }
   }
 }

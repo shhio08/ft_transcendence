@@ -32,8 +32,6 @@ export class Home extends Component {
           this.state.username = data.user.username || "Guest";
           this.state.avatar =
             data.user.avatar || "/static/pong/images/avatar-default.jpg";
-          console.log("success username: " + this.state.username);
-          console.log("success avatar: " + this.state.avatar);
           this.render();
           this.attachEventListeners();
           this.loadGameHistory();
@@ -80,9 +78,6 @@ export class Home extends Component {
       return;
     }
 
-    // 全ゲーム履歴データをコンソールに出力（デバッグ用）
-    console.log("全ゲーム履歴データ:", this.state.gameHistory);
-
     historyContainer.innerHTML = this.state.gameHistory
       .map((game, index) => {
         // 日付の処理
@@ -98,24 +93,6 @@ export class Home extends Component {
           }
         }
 
-        // デバッグログ
-        console.log(`Game ${index} (ID: ${game.id}):`);
-        console.log("  Mode:", game.mode);
-        console.log("  Player Count:", game.player_count);
-        console.log("  User:", game.user_nickname, game.user_score);
-
-        // プレイヤー情報のデバッグ
-        for (let i = 1; i <= 4; i++) {
-          if (game[`player${i}_nickname`]) {
-            console.log(
-              `  Player ${i}:`,
-              game[`player${i}_nickname`],
-              game[`player${i}_score`],
-              game[`player${i}_id`]
-            );
-          }
-        }
-
         // トーナメント表示の場合
         if (game.is_tournament) {
           // トーナメント名
@@ -124,26 +101,22 @@ export class Home extends Component {
           // 参加者データの取得（シンプル化）
           let participants = [];
 
-          // participant_nicknames配列を優先使用（バックエンドで追加したもの）
+          // participant_nicknames配列を優先使用
           if (Array.isArray(game.participant_nicknames)) {
             participants = [...game.participant_nicknames];
-            console.log("Using participant_nicknames:", participants);
           }
-          // 次にparticipants配列を使用（オブジェクト配列の場合）
+          // 次にparticipants配列を使用
           else if (
             Array.isArray(game.participants) &&
             game.participants.length > 0
           ) {
             participants = game.participants.map((p) => p.nickname);
-            console.log("Using participants array:", participants);
           }
 
           // 優勝者を参加者リストから除外
           const displayParticipants = game.winner_nickname
             ? participants.filter((name) => name !== game.winner_nickname)
             : participants;
-
-          console.log("Final participants to display:", displayParticipants);
 
           return `
             <div class="game-history-item">
@@ -218,8 +191,6 @@ export class Home extends Component {
 
             players.push(playerData);
           }
-
-          console.log("プレイヤー配列:", players);
 
           return `
             <div class="game-history-item four-player">
@@ -381,11 +352,11 @@ export class Home extends Component {
 
   get html() {
     return `
-    <div class="container py-5 d-flex flex-column justify-content-center align-items-center">
+    <div class="container-fluid py-5 d-flex flex-column justify-content-center align-items-center" style="min-width: 1200px;">
       <!-- 上部：プロフィールとゲーム履歴 -->
       <div class="row w-100 mb-4">
         <!-- 左側：プロフィール情報 -->
-        <div class="col-lg-4 mb-4 mb-lg-0 d-flex">
+        <div class="col-lg-5 mb-4 mb-lg-0 d-flex">
           <div class="user-profile p-4 text-center w-100">
             <div class="avatar-container mb-3">
               <img src="${this.state.avatar}" alt="Avatar" class="player-profile-avatar">
@@ -400,7 +371,7 @@ export class Home extends Component {
         </div>
         
         <!-- 右側：ゲーム履歴 -->
-        <div class="col-lg-8 d-flex">
+        <div class="col-lg-7 d-flex">
           <div class="game-history-container p-4 w-100" style="max-height: 497px; overflow-y: auto;">
             <h3 class="neon-text-blue mb-3">GAME HISTORY</h3>
             <div id="game-history" class="game-history-list"></div>

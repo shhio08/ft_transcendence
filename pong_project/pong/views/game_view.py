@@ -261,3 +261,75 @@ def process_normal_game(game, user, user_id, game_history):
     print(f"Game data: {game_data}")
     
     game_history.append(game_data)
+
+@csrf_exempt
+@login_required
+def reload_notification_api(request):
+    """ブラウザリロード通知を処理するAPI"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            game_id = data.get('game_id')
+            
+            if not game_id:
+                return JsonResponse({'error': 'Game ID is required'}, status=400)
+            
+            game = Game.objects.get(id=game_id)
+            
+            # ゲームの状態を中断に設定
+            from pong.consumers.game import handle_player_left
+            handle_player_left(request.user.id, game_id)
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Reload notification received'
+            }, status=200)
+            
+        except Game.DoesNotExist:
+            return JsonResponse({'error': 'Game not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+@login_required
+def update_game_score(request):
+    """ゲームスコアを更新するAPI"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            game_id = data.get('game_id')
+            player1_score = data.get('player1_score', 0)
+            player2_score = data.get('player2_score', 0)
+            winner = data.get('winner')
+            
+            if not game_id:
+                return JsonResponse({'error': 'Game ID is required'}, status=400)
+            
+            # ゲームを取得
+            game = Game.objects.get(id=game_id)
+            
+            # プレイヤー情報を更新
+            players = GamePlayers.objects.filter(game=game)
+            for player in players:
+                if player.player_number == 1:
+                    player.score = player1_score
+                elif player.player_number == 2:
+                    player.score = player2_score
+                player.save()
+            
+            # 勝者を設定
+            if winner:
+                winner_player = players.filter(player_number=winner).first()
+                if winner_player:
+                    game.winner = winner_player.user
+                    game.save()
+            
+            return JsonResponse({'message': 'Game score updated successfully'}, status=200)
+        except Game.DoesNotExist:
+            return JsonResponse({'error': 'Game not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

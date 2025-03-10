@@ -81,7 +81,7 @@ let router = new Router(document.getElementById("app"), [
     state: {},
   },
   {
-    path: "/remote-game",
+    path: "/remote-game/:gameId",
     component: RemoteGame,
     state: {},
   },

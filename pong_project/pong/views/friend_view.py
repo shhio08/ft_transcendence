@@ -100,11 +100,22 @@ def friend_list_api(request):
             try:
                 user = user_list.get(id=friend_request.user_id)
                 print(user.id)
+                
+                # ユーザーのオンライン状態を取得
+                is_online = False
+                try:
+                    user_status = UserStatus.objects.get(user=user)
+                    is_online = user_status.is_online
+                except UserStatus.DoesNotExist:
+                    # ステータスがない場合はデフォルトでオフライン
+                    pass
+                
                 friend_request_list[str(user.id)] = {
                     'username': user.username,
                     'email': user.email,
                     'avatar': user.get_avatar_url(),
                     'status': friend_request.status,
+                    'is_online': is_online,
                 }
             except User.DoesNotExist:
                 print(f"User with ID {friend_request.user_id} not found")

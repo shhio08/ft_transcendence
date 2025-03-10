@@ -3,6 +3,7 @@ export class Router {
     this.rootElement = rootElement;
     this.routes = routes;
     this.cleanupFunctions = [];
+    this.publicPaths = ["/", "/login", "/signup", "/oauth/callback"]; // 認証不要のパス
     // popstate イベントをリッスンして、ページを更新
     window.addEventListener("popstate", (event) => {
       this.handlePopState(event);
@@ -14,17 +15,56 @@ export class Router {
   }
 
   goNextPage(path, state = {}) {
-    // console.log("Navigating to:", path);
-    // console.log("State:", state);
-
-    // 前のページのクリーンアップ関数を実行
-    this.executeCleanup();
-
-    if (path === "/home" && !this.isLoggedIn()) {
-      console.error("User not logged in");
-      this.goNextPage("/login");
+    // 認証チェック
+    if (!this.isPublicPath(path) && !this.isLoggedIn()) {
+      console.log("Unauthorized access, redirecting to top page");
+      this.navigateToPath("/", state);
       return;
     }
+
+    this.navigateToPath(path, state);
+  }
+
+  // 認証不要のパスかどうかをチェック
+  isPublicPath(path) {
+    return this.publicPaths.some((publicPath) => path === publicPath);
+  }
+
+  // 実際のページ遷移処理
+  navigateToPath(path, state = {}) {
+    this.executeCleanup();
+
+    // ゲーム結果ページへのアクセスを特別に処理
+    if (
+      path.startsWith("/result/") ||
+      path.startsWith("/tournament/") ||
+      path.startsWith("/remote-game/") ||
+      path.startsWith("/online-matching") ||
+      path.startsWith("/game/")
+    ) {
+      if (!this.isLoggedIn()) {
+        console.log(
+          "Unauthorized access to result page, redirecting to top page"
+        );
+        history.pushState({}, "", "/");
+        this.goNextPage("/");
+        return;
+      } else {
+        console.log("Redirecting logged-in user to home");
+        history.pushState({}, "", "/home");
+        this.goNextPage("/home");
+        return;
+      }
+    }
+
+    // 通常の認証チェック
+    if (!this.isPublicPath(path) && !this.isLoggedIn()) {
+      console.log("Unauthorized access, redirecting to top page");
+      history.pushState({}, "", "/");
+      this.goNextPage("/");
+      return;
+    }
+
     const route = this.matchRoute(path);
     if (route) {
       if (

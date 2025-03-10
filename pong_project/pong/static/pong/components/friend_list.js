@@ -201,34 +201,66 @@ export class FriendList extends Component {
       return;
     }
 
-    const requestListHtml = Object.keys(requests)
-      .map((key) => {
-        const request = requests[key];
-        const onlineStatus = request.is_online ? "Online" : "Offline";
-        const statusClass = request.is_online ? "online" : "offline";
+    // 最新のユーザーリストデータを取得してオンラインステータスをチェックする
+    fetch("/pong/api/user-list/", {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((userData) => {
+        if (userData.status === "success") {
+          const userList = userData.user_list;
 
-        return `
-          <li id="${key}" class="user-card">
-            <div class="user-info">
-              <img src="${request.avatar}" alt="${request.username}" class="avatar"/>
-              <span class="username">${request.username}</span>
-              <span class="status ${statusClass}">${onlineStatus}</span>
-            </div>
-            <div class="request-actions" id="${key}">
-              <button id="accept" class="btn btn-accept">Accept</button>
-              <button id="reject" class="btn btn-reject">Reject</button>
-            </div>
-          </li>`;
-      })
-      .join("");
+          const requestListHtml = Object.keys(requests)
+            .map((key) => {
+              const request = requests[key];
+              console.log("Request user data:", request);
 
-    document.getElementById("friend-request-list").innerHTML = requestListHtml;
+              // userListからオンラインステータスを取得
+              const user = userList[key];
+              const isOnline = user && user.is_online === true;
+              const onlineStatus = isOnline ? "Online" : "Offline";
+              const statusClass = isOnline ? "online" : "offline";
+
+              console.log(
+                `Request from ${request.username}, is_online:`,
+                isOnline
+              );
+
+              return `
+                <li id="${key}" class="user-card">
+                  <div class="user-info">
+                    <img src="${request.avatar}" alt="${request.username}" class="avatar"/>
+                    <span class="username">${request.username}</span>
+                  </div>
+                  <div class="user-actions">
+                    <span class="status ${statusClass}">${onlineStatus}</span>
+                    <div class="request-actions" id="${key}">
+                      <button id="accept" class="btn btn-accept">Accept</button>
+                      <button id="reject" class="btn btn-reject">Reject</button>
+                    </div>
+                  </div>
+                </li>`;
+            })
+            .join("");
+
+          document.getElementById("friend-request-list").innerHTML =
+            requestListHtml;
+
+          // リクエストボタンにイベントリスナーを再度追加
+          this.attachEventListeners();
+        }
+      });
   }
 
   // Render sent requests
   renderPendingList() {
-    // Get user list to display usernames for pending requests
-    fetch("/pong/api/user-list/", {
+    // タイムスタンプをクエリパラメータに追加してキャッシュを回避
+    const timestamp = new Date().getTime();
+    fetch(`/pong/api/user-list/?t=${timestamp}`, {
       method: "GET",
       credentials: "include",
       headers: {
@@ -238,13 +270,22 @@ export class FriendList extends Component {
       .then((response) => response.json())
       .then((data) => {
         if (data.status === "success") {
+          console.log("最新のユーザーリストデータ:", data.user_list); // デバッグ用
+
           const pendingHtml = Array.from(this.pendingRequestIds)
             .map((id) => {
               const user = data.user_list[id];
               if (!user) return ""; // Skip if user not found
 
-              const onlineStatus = user.is_online ? "Online" : "Offline";
-              const statusClass = user.is_online ? "online" : "offline";
+              console.log(
+                `Sent request to user ${user.username}, is_online:`,
+                user.is_online
+              ); // デバッグ用
+
+              // データ形式の違いに対応
+              const isOnline = user.is_online === true;
+              const onlineStatus = isOnline ? "Online" : "Offline";
+              const statusClass = isOnline ? "online" : "offline";
 
               return `
                 <li id="${id}" class="user-card">

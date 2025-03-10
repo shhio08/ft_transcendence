@@ -3,7 +3,9 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from ..models import Game, GamePlayers
 import uuid
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -31,36 +33,75 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         elif data.get('type') == 'cancel_matching':
             await self.handle_cancel_matching()
     
+    @database_sync_to_async
+    def create_game_and_players(self, player1_data, player2_data):
+        """ゲームとプレイヤーデータを作成"""
+        # ゲームの作成
+        game = Game.objects.create(
+            mode='remote',
+            played_at=timezone.now()
+        )
+        
+        # プレイヤー1の作成（ユーザーIDを設定）
+        player1 = GamePlayers.objects.create(
+            game=game,
+            player_number=1,
+            nickname=player1_data['username'],
+            user_id=player1_data.get('user_id')  # ユーザーIDを追加
+        )
+        
+        # プレイヤー2の作成（ユーザーIDを設定）
+        player2 = GamePlayers.objects.create(
+            game=game,
+            player_number=2,
+            nickname=player2_data['username'],
+            user_id=player2_data.get('user_id')  # ユーザーIDを追加
+        )
+        
+        print(f"Created player 1: {player1.nickname} (user_id: {player1_data.get('user_id')})")
+        print(f"Created player 2: {player2.nickname} (user_id: {player2_data.get('user_id')})")
+        
+        return {
+            'game_id': str(game.id),
+            'player1_id': str(player1.id),
+            'player2_id': str(player2.id)
+        }
+    
     async def handle_match_request(self, data):
         """マッチングリクエストを処理"""
-        # 現在のユーザー情報を保存
         player_id = str(uuid.uuid4())
+        
+        # ユーザーIDをデータに含める
         self.waiting_players[player_id] = {
             'channel_name': self.channel_name,
             'username': data.get('username', 'Unknown Player'),
-            'avatar': data.get('avatar', None)
+            'avatar': data.get('avatar', None),
+            'user_id': self.scope['user'].id if self.scope['user'].is_authenticated else None  # ユーザーIDを追加
         }
         
-        # 2人以上のプレイヤーが待機中の場合、マッチング
         if len(self.waiting_players) >= 2:
-            # 先頭2人を取得しマッチング
             players = list(self.waiting_players.items())[:2]
             player1_id, player1_data = players[0]
             player2_id, player2_data = players[1]
             
-            # マッチングした2人をマッチング待ちリストから削除
+            # 待機リストから削除
             del self.waiting_players[player1_id]
             del self.waiting_players[player2_id]
             
-            # 一意のゲームルームIDを生成
-            game_room_id = f"game_{uuid.uuid4()}"
+            # ゲームとプレイヤーデータを作成
+            game_data = await self.create_game_and_players(player1_data, player2_data)
+            game_room_id = f"game_{game_data['game_id']}"
             
-            # 両プレイヤーにマッチング成功を通知
+            print(f"Created game: {game_data}")
+            
+            # プレイヤー1に通知
             await self.channel_layer.send(
                 player1_data['channel_name'],
                 {
                     'type': 'match_found',
+                    'game_id': game_data['game_id'],
                     'game_room': game_room_id,
+                    'player_number': 1,
                     'opponent': {
                         'username': player2_data['username'],
                         'avatar': player2_data['avatar']
@@ -68,11 +109,14 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
                 }
             )
             
+            # プレイヤー2に通知
             await self.channel_layer.send(
                 player2_data['channel_name'],
                 {
                     'type': 'match_found',
+                    'game_id': game_data['game_id'],
                     'game_room': game_room_id,
+                    'player_number': 2,
                     'opponent': {
                         'username': player1_data['username'],
                         'avatar': player1_data['avatar']
@@ -105,6 +149,8 @@ class MatchmakingConsumer(AsyncWebsocketConsumer):
         # クライアントにマッチング結果を送信
         await self.send(json.dumps({
             'type': 'match_found',
+            'game_id': event['game_id'],
             'game_room': event['game_room'],
+            'player_number': event['player_number'],
             'opponent': event['opponent']
         })) 

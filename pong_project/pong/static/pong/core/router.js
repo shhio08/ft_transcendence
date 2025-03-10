@@ -34,29 +34,6 @@ export class Router {
   navigateToPath(path, state = {}) {
     this.executeCleanup();
 
-    // ゲーム結果ページへのアクセスを特別に処理
-    if (
-      path.startsWith("/result/") ||
-      path.startsWith("/tournament/") ||
-      path.startsWith("/remote-game/") ||
-      path.startsWith("/online-matching") ||
-      path.startsWith("/game/")
-    ) {
-      if (!this.isLoggedIn()) {
-        console.log(
-          "Unauthorized access to result page, redirecting to top page"
-        );
-        history.pushState({}, "", "/");
-        this.goNextPage("/");
-        return;
-      } else {
-        console.log("Redirecting logged-in user to home");
-        history.pushState({}, "", "/home");
-        this.goNextPage("/home");
-        return;
-      }
-    }
-
     // 通常の認証チェック
     if (!this.isPublicPath(path) && !this.isLoggedIn()) {
       console.log("Unauthorized access, redirecting to top page");

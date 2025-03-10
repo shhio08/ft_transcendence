@@ -26,8 +26,45 @@ export class Tournament extends Component {
       });
     }
 
-    this.render();
-    this.loadTournamentData();
+    // ログインチェック
+    if (!this.router.isLoggedIn()) {
+      console.log("Unauthorized access, redirecting to top page");
+      this.router.goNextPage("/");
+      return;
+    }
+
+    if (!this.tournamentId) {
+      console.error("Tournament ID is undefined");
+      this.router.goNextPage("/home");
+      return;
+    }
+
+    // トーナメントの存在確認
+    this.validateTournament();
+  }
+
+  validateTournament() {
+    fetch(`/pong/api/get-tournament/?tournament_id=${this.tournamentId}`, {
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Tournament not found");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.status !== "success") {
+          console.error("Tournament data error:", data.message);
+          this.router.goNextPage("/home");
+        } else {
+          this.loadTournamentData();
+        }
+      })
+      .catch((error) => {
+        console.error("Error validating tournament:", error);
+        this.router.goNextPage("/home");
+      });
   }
 
   // スコア更新イベント処理

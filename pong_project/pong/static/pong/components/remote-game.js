@@ -18,6 +18,22 @@ export class RemoteGame extends Component {
       this.gameRoom
     );
 
+    // ログインチェック
+    if (!this.router.isLoggedIn()) {
+      console.log("Unauthorized access, redirecting to top page");
+      this.router.goNextPage("/");
+      return;
+    }
+
+    if (!this.gameId) {
+      console.error("Game ID is undefined");
+      this.router.goNextPage("/home");
+      return;
+    }
+
+    // ゲームの存在確認
+    this.validateGame();
+
     // リロード検出用のフラグをURLに保存
     if (!window.location.href.includes("reload=true")) {
       // 初回アクセス時: リロードマーカーなしの場合
@@ -95,6 +111,31 @@ export class RemoteGame extends Component {
     // ビジビリティ変更イベントリスナー
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
+  }
+
+  validateGame() {
+    fetch(`/pong/api/get-game/?game_id=${this.gameId}`, {
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Game not found");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          console.error("Game data error:", data.error);
+          this.router.goNextPage("/home");
+        } else {
+          this.initializeWebSocket();
+          this.loadPlayerData();
+        }
+      })
+      .catch((error) => {
+        console.error("Error validating game:", error);
+        this.router.goNextPage("/home");
+      });
   }
 
   handleVisibilityChange() {

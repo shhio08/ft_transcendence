@@ -30,11 +30,23 @@ export class Login extends Component {
 
   // 42認証処理を行うメソッド
   handleFortyTwoAuth() {
-    const CLIENT_ID = os.environ.get('FORTY_TWO_CLIENT_ID'); // 42 APIから取得したクライアントID
-    const REDIRECT_URI = os.environ.get('FORTY_TWO_REDIRECT_URI');
-
-    // 42認証ページへリダイレクト
-    window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+    // バックエンドAPIから認証用URLを取得
+    fetch("/pong/api/get-42-auth-url/", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.auth_url) {
+          window.location.href = data.auth_url;
+        } else {
+          alert("認証URLの取得に失敗しました");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("認証URLの取得中にエラーが発生しました");
+      });
   }
 
   handleLogin() {

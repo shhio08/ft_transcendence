@@ -318,11 +318,3 @@ def signup_api(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
-
-def my_view(request):
-    context = {
-        'forty_two_client_id': os.getenv('FORTY_TWO_CLIENT_ID'),
-        'forty_two_redirect_uri': os.getenv('FORTY_TWO_REDIRECT_URI'),
-    }
-    return render(request, 'your_template.html', context)

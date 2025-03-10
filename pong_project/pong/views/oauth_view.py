@@ -11,6 +11,7 @@ import os
 import shutil
 from django.core.files import File
 from pong.models import UserStatus  # 追加
+from django.views.decorators.http import require_http_methods
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -181,3 +182,24 @@ def oauth_42_callback(request):
         print(f"OAuth error: {str(e)}")
         traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500) 
+
+@require_http_methods(["GET"])
+def get_42_auth_url(request):
+    """42認証URLを生成して返すAPI"""
+    try:
+        auth_url = (
+            f"https://api.intra.42.fr/oauth/authorize"
+            f"?client_id={settings.FORTY_TWO_CLIENT_ID}"
+            f"&redirect_uri={settings.FORTY_TWO_REDIRECT_URI}"
+            f"&response_type=code"
+        )
+        return JsonResponse({
+            'status': 'success',
+            'auth_url': auth_url
+        })
+    except Exception as e:
+        logger.error(f"Error generating 42 auth URL: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': '認証URLの生成に失敗しました'
+        }, status=500) 

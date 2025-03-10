@@ -4,10 +4,22 @@ export class Result extends Component {
   constructor(router, params, state) {
     super(router, params, state);
     this.gameId = params.gameId;
-    if (!this.gameId) {
-      console.error("Game ID is undefined");
+
+    // ログインチェック
+    if (!this.router.isLoggedIn()) {
+      console.log("Unauthorized access, redirecting to top page");
+      this.router.goNextPage("/");
       return;
     }
+
+    if (!this.gameId) {
+      console.error("Game ID is undefined");
+      this.router.goNextPage("/home");
+      return;
+    }
+
+    // ゲームの存在確認
+    this.validateGame();
 
     // プレイヤーデータを格納する配列を初期化
     this.players = [];
@@ -28,6 +40,28 @@ export class Result extends Component {
         console.log("Result component cleaned up");
       });
     }
+  }
+
+  validateGame() {
+    fetch(`/pong/api/get-result/?game_id=${this.gameId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Game not found");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.error) {
+          console.error(data.error);
+          this.router.goNextPage("/home");
+        } else {
+          this.loadResultData(); // 既存の処理を呼び出す
+        }
+      })
+      .catch((error) => {
+        console.error("Error validating game:", error);
+        this.router.goNextPage("/home");
+      });
   }
 
   handleScoreUpdated(event) {

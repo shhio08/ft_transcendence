@@ -46,6 +46,10 @@ services:
     image: postgres:latest
     env_file:
       - ./.env
+    environment:
+      - POSTGRES_DB=pong_db
+      - POSTGRES_USER=pong_user
+      - POSTGRES_PASSWORD=pong_user_password
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     restart: always
@@ -58,7 +62,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/stakimot/data/postgres
+      device: /home/stakimot/Desktop/pong_project/postgres_data
       o: bind
 
 networks:

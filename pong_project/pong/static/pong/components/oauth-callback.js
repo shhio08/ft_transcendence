@@ -5,14 +5,18 @@ export class OAuthCallback extends Component {
     super(router, params, state);
     this.render();
     this.handleCallback();
-    this.setupEventListeners();
   }
 
   setupEventListeners() {
-    const backButton = this.findElement("back-to-login");
+    const backButton = document.getElementById("back-to-login");
     if (backButton) {
-      backButton.onclick = () => this.handleBackToLogin();
+      backButton.addEventListener("click", () => this.handleBackToLogin());
     }
+  }
+
+  render() {
+    super.render();
+    this.setupEventListeners();
   }
 
   handleCallback() {

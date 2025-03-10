@@ -94,11 +94,14 @@ def oauth_42_callback(request):
             password = secrets.token_urlsafe(16)
             
             # ユーザー作成
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-            )
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                )
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
             
             # 42認証ユーザー用のIDを設定
             if hasattr(User(), 'intra_42_id'):

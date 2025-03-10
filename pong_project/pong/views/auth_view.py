@@ -13,6 +13,7 @@ import os
 import shutil
 from django.core.files import File
 from pong.models import UserStatus  # 追加
+from django.core.cache import cache
 
 User = get_user_model()
 
@@ -86,10 +87,15 @@ def verify_2fa_api(request):
             
         try:
             user = User.objects.get(username=username)
+            used_code_key = f'used_totp_{user.id}_{code}'
+            if cache.get(used_code_key):
+                return JsonResponse({'status': 'error', 'message': 'This code has already been used'}, status=401)
             
             # TOTPコードを検証
             totp = pyotp.TOTP(user.totp_secret)
             if totp.verify(code):
+                cache.set(used_code_key, True, 60)
+
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
                 

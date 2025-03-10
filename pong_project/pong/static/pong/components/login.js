@@ -5,18 +5,36 @@ export class Login extends Component {
     super(router, params, state);
     this.render();
     this.state = { showTwoFactor: false, username: "" };
-    this.findElement("login-form").onsubmit = (event) => {
-      event.preventDefault();
-      this.handleLogin();
-    };
+    this.setupEventListeners();
+  }
 
-    // 42認証ボタンにイベントリスナーを追加
+  // イベントリスナーをセットアップする関数を追加
+  setupEventListeners() {
+    // ログインフォーム
+    const loginForm = this.findElement("login-form");
+    if (loginForm) {
+      loginForm.onsubmit = (event) => {
+        event.preventDefault();
+        this.handleLogin();
+      };
+    }
+
+    // 2FAフォーム
+    const twoFactorForm = this.findElement("two-factor-form");
+    if (twoFactorForm) {
+      twoFactorForm.onsubmit = (e) => {
+        e.preventDefault();
+        this.handleLogin();
+      };
+    }
+
+    // 42認証ボタン
     const fortyTwoAuthBtn = this.findElement("forty-two-auth");
     if (fortyTwoAuthBtn) {
       fortyTwoAuthBtn.onclick = () => this.handleFortyTwoAuth();
     }
 
-    // 戻るボタンにイベントリスナーを追加
+    // 戻るボタン - 常にセットアップする
     const backBtn = this.findElement("back-to-top");
     if (backBtn) {
       backBtn.onclick = () => this.goBackToTop();
@@ -25,6 +43,14 @@ export class Login extends Component {
 
   // トップページに戻るメソッド
   goBackToTop() {
+    // 2FAモードの場合は通常のログイン画面に戻る
+    if (this.state.showTwoFactor) {
+      this.state.showTwoFactor = false;
+      this.render();
+      this.setupEventListeners();
+      return;
+    }
+    // それ以外はトップページに遷移
     this.goNextPage("/");
   }
 
@@ -102,11 +128,8 @@ export class Login extends Component {
           this.state.showTwoFactor = true;
           this.state.username = username;
           this.render();
-          // 2FAフォームのサブミットイベントを設定
-          this.findElement("two-factor-form").onsubmit = (e) => {
-            e.preventDefault();
-            this.handleLogin();
-          };
+          // 新しいレンダリング後にイベントリスナーを再設定
+          this.setupEventListeners();
         } else {
           alert(data.message || "Login failed");
         }

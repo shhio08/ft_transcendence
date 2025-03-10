@@ -10,12 +10,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # スーパーユーザーの作成
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser(username='admin', email='admin@example.com', password='admin_password')
+if not User.objects.filter(username='$DJANGO_SUPERUSER_USERNAME').exists():
+    User.objects.create_superuser(username='$DJANGO_SUPERUSER_USERNAME', email='$DJANGO_SUPERUSER_EMAIL', password='$DJANGO_SUPERUSER_PASSWORD')
 
 # 通常ユーザーの作成
-if not User.objects.filter(username='user').exists():
-    User.objects.create_user(username='user', email='user@example.com', password='user_password')
+if not User.objects.filter(username='$DJANGO_USER_USERNAME').exists():
+    User.objects.create_user(username='$DJANGO_USER_USERNAME', email='$DJANGO_USER_EMAIL', password='$DJANGO_USER_PASSWORD')
 EOF
 
 python manage.py collectstatic --no-input --clear

@@ -30,9 +30,8 @@ export class Login extends Component {
 
   // 42認証処理を行うメソッド
   handleFortyTwoAuth() {
-    const CLIENT_ID =
-      "u-s4t2ud-46adc406116a39c11f807fb8e35377ae95308aed832f497a3a03f7c39513253f"; // 42 APIから取得したクライアントID
-    const REDIRECT_URI = "http://localhost:8080/oauth/callback";
+    const CLIENT_ID = os.environ.get('FORTY_TWO_CLIENT_ID'); // 42 APIから取得したクライアントID
+    const REDIRECT_URI = os.environ.get('FORTY_TWO_REDIRECT_URI');
 
     // 42認証ページへリダイレクト
     window.location.href = `https://api.intra.42.fr/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;

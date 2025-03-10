@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l9ktm_9u!%i&!1#wp@rqdy^fc)@1l7t(p+-b*=4!ctis428m74'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -86,12 +86,12 @@ WSGI_APPLICATION = 'pong_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pong_db',
-        'USER': 'pong_user',
-        'PASSWORD': 'pong_user_password',
-        'HOST': 'db',  # Docker Composeのサービス名
-        'PORT': '5432',  # PostgreSQLのデフォルトポート
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
@@ -170,9 +170,9 @@ SIMPLE_JWT = {
 }
 
 # 42 OAuth設定
-FORTY_TWO_CLIENT_ID = 'u-s4t2ud-46adc406116a39c11f807fb8e35377ae95308aed832f497a3a03f7c39513253f'
-FORTY_TWO_CLIENT_SECRET = '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'
-FORTY_TWO_REDIRECT_URI = 'http://localhost:8080/oauth/callback'  # 本番環境では適切なURIに変更
+FORTY_TWO_CLIENT_ID = os.environ.get('FORTY_TWO_CLIENT_ID')
+FORTY_TWO_CLIENT_SECRET = os.environ.get('FORTY_TWO_CLIENT_SECRET')
+FORTY_TWO_REDIRECT_URI = os.environ.get('FORTY_TWO_REDIRECT_URI')
 
 # Channels設定
 ASGI_APPLICATION = 'pong_project.asgi.application'
